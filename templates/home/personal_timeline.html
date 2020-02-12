@@ -1,0 +1,18 @@
+{{ define "title" }}Contact{{ end }}
+
+{{ define "content" }}
+
+<h1>Personal Timeline</h1>
+
+    <div class=twitbox>
+    <h3>What's on your mind USERNAME ?</h3>
+    <form action="/personaltimeline" method=post>
+        <p><input type=text name=text size=60>
+        <input type=submit value="Share">
+    </form>
+    </div>
+    
+  <ul class=messages>
+    <li><em>There's no message so far.</em>
+  </ul>
+{{ end }}

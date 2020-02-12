@@ -11,6 +11,8 @@
     <title>MiniTwit</title>
 
     <!-- Bootstrap core CSS -->
+
+
     <link href="/public/css/bootstrap.min.css" rel="stylesheet">
     <link href="/public/css/site.css" rel="stylesheet">
 
@@ -36,15 +38,25 @@
             <a class="navbar-brand" href="/">MiniTwit</a>
         </div>
         <div class="collapse navbar-collapse">
+            {{if .loggedin}}
             <ul class="nav navbar-nav">
                 <li class="active"><a href="/">Home</a></li>
                 <li><a href="/about">Public Timeline</a></li>
-                <li><a href="/contact">Contact</a></li>
+                <li><a href="/personaltimeline">Personal Timeline</a></li>
+            </ul>
+            <ul class="nav navbar-nav navbar-right">
+                <li><a href="/signout">Sign out</a></li>
+            </ul>
+            {{else}}
+            <ul class="nav navbar-nav">
+                <li class="active"><a href="/">Home</a></li>
+                <li><a href="/about">Public Timeline</a></li>
             </ul>
             <ul class="nav navbar-nav navbar-right">
                 <li><a href="/signup">Signup</a></li>
                 <li><a href="/signin">Signin</a></li>
             </ul>
+            {{end}}
 
         </div><!--/.nav-collapse -->
     </div>

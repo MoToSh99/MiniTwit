@@ -51,9 +51,12 @@ func main() {
 
 
 	router.HandleFunc("/signup", SignupRoute).Methods("GET")
-    router.HandleFunc("/signup", RegisterHandler).Methods("POST")
+	router.HandleFunc("/signup", RegisterHandler).Methods("POST")
+	
+	router.HandleFunc("/personaltimeline", PersonalTimelineRoute).Methods("GET")
+    router.HandleFunc("/personaltimeline", PersonalTimelineHandler).Methods("POST")
 
-	if err := http.ListenAndServe(":3011", router); err != nil {
+	if err := http.ListenAndServe(":3012", router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 }
@@ -82,18 +85,35 @@ func IsEmpty(data string) bool {
 
 func IndexRoute(res http.ResponseWriter, req *http.Request) {
 
-	if err := templates["index"].Execute(res, nil); err != nil {
+	if err := templates["index"].Execute(res, map[string]interface{}{
+        "loggedin": !IsEmpty(GetUserName(req)),
+    }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func AboutRoute(res http.ResponseWriter, req *http.Request) {
 
-	if err := templates["about"].Execute(res, nil); err != nil {
+	if err := templates["about"].Execute(res, map[string]interface{}{
+        "loggedin": !IsEmpty(GetUserName(req)),
+    }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
+func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
+
+	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
+        "loggedin": !IsEmpty(GetUserName(req)),
+    }); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+
+func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
+
+}
 func ContactRoute(res http.ResponseWriter, req *http.Request) {
 
 	if err := templates["contact"].Execute(res, nil); err != nil {
@@ -122,12 +142,9 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
         _userIsValid := UserIsValid(name, pass)
 		
         if _userIsValid {
-			fmt.Fprintln(response, "HELLO : ", name)
             SetCookie(name, response)
-            redirectTarget = "/index"
+            redirectTarget = "/"
         } else {
-
-			fmt.Fprintln(response, "NOPE : ", name)
             redirectTarget = "/signup"
         }
     }
@@ -222,6 +239,7 @@ func loadTemplates() {
 	templates["contact"] = template.Must(template.ParseFiles(baseTemplate, "templates/home/contact.html"))
 	templates["signin"] = template.Must(template.ParseFiles(baseTemplate, "templates/account/signin.html"))
 	templates["signup"] = template.Must(template.ParseFiles(baseTemplate, "templates/account/signup.html"))
+	templates["personaltimeline"] = template.Must(template.ParseFiles(baseTemplate, "templates/home/personal_timeline.html"))
 }
 
  
