@@ -54,6 +54,9 @@ func main() {
 
 	router.HandleFunc("/signout", LogoutHandler)
 
+	router.HandleFunc("/publictimeline", PublicTimelineRoute).Methods("GET")
+    router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
+
 	if err := http.ListenAndServe(":3015", router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
@@ -83,7 +86,7 @@ func IsEmpty(data string) bool {
 
 func IndexRoute(res http.ResponseWriter, req *http.Request) {
 
-	if err := templates["index"].Execute(res, map[string]interface{}{
+	if err := templates["publictimeline"].Execute(res, map[string]interface{}{
         "loggedin": !IsEmpty(GetUserName(req)),
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
@@ -141,6 +144,48 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 	PersonalTimelineRoute(res,req)
 }
 
+type Post struct {
+	PostMessageid      int
+	Text 			string
+}
+func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
+
+	if err := templates["publictimeline"].Execute(res, map[string]interface{}{
+		"loggedin": !IsEmpty(GetUserName(req)), 
+		"postSlice": getAllPosts(),
+    }); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
+
+
+}
+
+func getAllPosts()[]Post{
+	var post Post
+
+	sqlStatement := `SELECT message_id, text FROM message`
+	rows, err := database.Query(sqlStatement)
+	 
+	defer rows.Close()
+	
+	if err != nil {
+	 panic(err)
+	}
+	var postSlice []Post
+	for rows.Next(){
+		rows.Scan(&post.PostMessageid, &post.Text)
+		postSlice = append(postSlice, post)
+	}
+	
+	return postSlice;
+	
+
+}
+
+
+func PublicTimelineHandler(res http.ResponseWriter, req *http.Request) {
+
+}
 
 func ContactRoute(res http.ResponseWriter, req *http.Request) {
 
@@ -268,6 +313,7 @@ func loadTemplates() {
 	templates["signin"] = template.Must(template.ParseFiles(baseTemplate, "templates/account/signin.html"))
 	templates["signup"] = template.Must(template.ParseFiles(baseTemplate, "templates/account/signup.html"))
 	templates["personaltimeline"] = template.Must(template.ParseFiles(baseTemplate, "templates/home/personal_timeline.html"))
+	templates["publictimeline"] = template.Must(template.ParseFiles(baseTemplate, "templates/home/public_timeline.html"))
 }
 
  

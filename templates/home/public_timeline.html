@@ -1,0 +1,21 @@
+{{ define "title" }}Contact{{ end }}
+
+{{ define "content" }}
+
+<h1>public Timeline</h1>
+{{if .loggedin}}
+<ul class="message">
+{{ range .postSlice }}
+    <li>
+       <h3>{{ .PostMessageid}}</h3>
+        <p>{{ .Text }}</p>
+    </li>
+
+{{ end }}
+</ul>
+{{else}}
+<h3>
+    There's no messages
+</h3>
+{{ end }}
+{{ end }}
