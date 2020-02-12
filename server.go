@@ -57,7 +57,7 @@ func main() {
 	router.HandleFunc("/publictimeline", PublicTimelineRoute).Methods("GET")
     router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
 
-	if err := http.ListenAndServe(":3015", router); err != nil {
+	if err := http.ListenAndServe(":3017", router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 }
@@ -111,6 +111,8 @@ func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
 		"loggedin": !IsEmpty(GetUserName(req)),
 		"username" : GetUserName(req),
+		"postSlice": getUserPosts(GetUserName(req)),
+		"posts": postsAmount(getUserPosts(GetUserName(req))),
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
@@ -145,9 +147,13 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 type Post struct {
-	PostMessageid      int
-	Text 			string
+	PostMessageid int
+	AuthorId int 
+	Text string
+	Date string
+	Flag int
 }
+
 func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 
 	if err := templates["publictimeline"].Execute(res, map[string]interface{}{
@@ -182,6 +188,37 @@ func getAllPosts()[]Post{
 
 }
 
+func postsAmount(posts []Post) bool{
+
+	if (len(posts) > 0){
+		return true
+	} else {
+		return false
+	}
+}
+
+func getUserPosts(username string)[]Post{
+	var post Post
+
+	query, err := database.Prepare("select message.* from message, user where message.flagged = 0 and message.author_id = user.user_id and (user.user_id = ? or	user.user_id in (select whom_id from follower where who_id = ?)) order by message.pub_date desc")
+
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+
+	rows, err := query.Query(getUserID(username),getUserID(username))
+	defer rows.Close()
+	
+
+	var postSlice []Post
+	for rows.Next(){
+		rows.Scan(&post.PostMessageid, &post.AuthorId, &post.Text, &post.Date, &post.Flag )
+		postSlice = append(postSlice, post)
+	}
+	
+	return postSlice;
+
+}
 
 func PublicTimelineHandler(res http.ResponseWriter, req *http.Request) {
 
