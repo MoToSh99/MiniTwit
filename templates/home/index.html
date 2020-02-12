@@ -1,0 +1,40 @@
+{{ define "title" }}Home{{ end }}
+
+{{ define "content" }}
+
+<div class="jumbotron" style="padding-top: 50px;">
+   <h2> MiniTwit</h2>
+</div>
+
+<div class="alert alert-success" role="alert">
+    <b>Last update: 12/02/2020</b>
+</div>
+
+<div class="col-md-5 alert alert-info" role="alert">
+    <ul class="list-unstyled">
+        <li>To do</li>
+        <ul>
+            <li>Public Timeline</li>
+            <li>Personal Timeline</li>
+            <li>Sign Out</li>
+            <li>Flag/Makefile</li>
+            <li>Api</li>
+            <li>Fine tunnning</li>
+        </ul>
+        </li>
+    </ul>
+</div>
+
+<div class="col-md-offset-1 col-md-5 alert alert-warning" role="alert">
+    <ul class="list-unstyled">
+        <li>Done</li>
+        <ul>
+            <li>"Login"</li>
+            <li>"Logout"</li>
+        </ul>
+        </li>
+    </ul>
+    <br/><br/>
+    <b>Run [go get {package name} ] for external packages</b>
+</div>
+{{ end }}

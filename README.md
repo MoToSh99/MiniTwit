@@ -1,2 +1,2 @@
 # minitwitgo
-Minitwit build  with Go
+Minitwit build with Go
