@@ -1,0 +1,20 @@
+{{ define "title" }}Contact{{ end }}
+
+{{ define "content" }}
+
+<h1>Public Timeline</h1>
+<ul class="message">
+{{if eq 0 .postSliceLength}}
+<h3>
+    There's no messages
+</h3>
+{{else}}
+{{ range .postSlice }}
+    <li>
+       <h3>{{ .PostMessageid}}</h3>
+        <p>{{ .Text }}</p>
+    </li>
+{{ end }}
+</ul>
+{{ end }}
+{{ end }}
