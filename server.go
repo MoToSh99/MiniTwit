@@ -2,19 +2,14 @@ package main
 
 import (
 	"github.com/gorilla/mux"
-	//"github.com/gorilla/schema"
-	//"github.com/gorilla/sessions"
 	"database/sql"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
-	//"github.com/smotes/purse"
 	"github.com/gorilla/securecookie"
 	_ "github.com/mattn/go-sqlite3"
-	//"path/filepath"
-	//"strconv"
-	//"github.com/bmizerany/pat"
+	"time"
 )
 
 var cookieHandler = securecookie.New(
@@ -54,9 +49,12 @@ func main() {
 	router.HandleFunc("/signup", RegisterHandler).Methods("POST")
 	
 	router.HandleFunc("/personaltimeline", PersonalTimelineRoute).Methods("GET")
-    router.HandleFunc("/personaltimeline", PersonalTimelineHandler).Methods("POST")
+	router.HandleFunc("/personaltimeline", PersonalTimelineHandler).Methods("POST")
+	
 
-	if err := http.ListenAndServe(":3012", router); err != nil {
+	router.HandleFunc("/signout", LogoutHandler)
+
+	if err := http.ListenAndServe(":3015", router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 }
@@ -103,8 +101,13 @@ func AboutRoute(res http.ResponseWriter, req *http.Request) {
 
 func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 
+	if (IsEmpty(GetUserName(req))){
+		 http.Redirect(res, req, "/", 302)
+		}
+
 	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
-        "loggedin": !IsEmpty(GetUserName(req)),
+		"loggedin": !IsEmpty(GetUserName(req)),
+		"username" : GetUserName(req),
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
@@ -112,8 +115,33 @@ func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 
 
 func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+ 
+    text := req.FormValue("text")
+ 
+	_text := false
+	
+	_text = !IsEmpty(text) 
 
+
+ 
+    if _text {
+
+		var database, _ = sql.Open("sqlite3", "./minitwit.db")
+		statement, _ := database.Prepare("INSERT INTO message (author_id, text, pub_date,flagged) values (?, ?, ?, ?)")
+		statement.Exec(getUserID(GetUserName(req)),text,getCurrentTime(),0)
+		statement.Close()
+		database.Close()
+
+	} else {
+		
+		fmt.Fprintln(res, "Error")
+	}
+
+	PersonalTimelineRoute(res,req)
 }
+
+
 func ContactRoute(res http.ResponseWriter, req *http.Request) {
 
 	if err := templates["contact"].Execute(res, nil); err != nil {
@@ -173,7 +201,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
  
     if _uName && _email && _pwd && _confirmPwd {
 
-		if (!getUserID(uName)){
+		if (!checkUsername(uName)){
 
 			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash) values (?, ?, ?)")
     		statement.Exec(uName,email,pwd)
@@ -243,7 +271,7 @@ func loadTemplates() {
 }
 
  
-func getUserID(username string) bool {
+func checkUsername(username string) bool {
 	var output bool
 
 	// Prepare your query
@@ -299,3 +327,23 @@ func validUser(username string, psw string) bool {
 
 }
 
+func getCurrentTime() string{
+	dt := time.Now()
+    return ("" + dt.String())
+}
+
+func getUserID(username string) int{
+	var output int
+	// Prepare your query
+	query, err := database.Prepare("SELECT user_id FROM user WHERE username = ?")
+
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+	defer query.Close()
+
+	err = query.QueryRow(username).Scan(&output)
+
+	return output
+
+}

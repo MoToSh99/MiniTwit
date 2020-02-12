@@ -1,12 +1,12 @@
-{{ define "title" }}Contact{{ end }}
+{{ define "title" }}Personal Timeline{{ end }}
 
 {{ define "content" }}
 
 <h1>Personal Timeline</h1>
 
     <div class=twitbox>
-    <h3>What's on your mind USERNAME ?</h3>
-    <form action="/personaltimeline" method=post>
+    <h3>What's on your mind {{.username}} ?</h3>
+    <form action="/personaltimeline" method="post">
         <p><input type=text name=text size=60>
         <input type=submit value="Share">
     </form>
