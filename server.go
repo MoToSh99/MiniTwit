@@ -127,6 +127,7 @@ func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 	if err := templates["publictimeline"].Execute(res, map[string]interface{}{
 		"loggedin": !IsEmpty(GetUserName(req)), 
 		"postSlice": getAllPosts(),
+		"postSliceLength": len(getAllPosts()),
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
