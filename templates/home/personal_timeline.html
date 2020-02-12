@@ -4,15 +4,33 @@
 
 <h1>Personal Timeline</h1>
 
-    <div class=twitbox>
     <h3>What's on your mind {{.username}} ?</h3>
     <form action="/personaltimeline" method="post">
         <p><input type=text name=text size=60>
         <input type=submit value="Share">
     </form>
-    </div>
-    
+   {{ if .posts}} 
+   <div class="w3-container">
+        
+    <div class="w3-card-4" style="width:70%">
+      <header class="w3-container w3-light-grey">
+        <h3>{{.username}}</h3>
+      </header>
+
+{{ range .postSlice }}
+      <div class="w3-container">
+        <hr>
+        <img src="https://d2x5ku95bkycr3.cloudfront.net/App_Themes/Common/images/profile/0_200.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px">
+        <p>{{ .Text }}</p>
+        <p style="color: grey;">{{ .Date }}</p>
+  </div>
+{{ end }}
+
+{{else}}
   <ul class=messages>
     <li><em>There's no message so far.</em>
+{{end}}
+
+
   </ul>
 {{ end }}
