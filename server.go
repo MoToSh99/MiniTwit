@@ -59,7 +59,7 @@ func main() {
 	router.HandleFunc("/{username}", FollowRoute).Methods("GET")
 	router.HandleFunc("/{username}", FollowHandler).Methods("POST")
 
-	port := 3000
+	port := 3002
 	log.Printf("Server starting on port %v\n", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%v", port), router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
@@ -108,7 +108,18 @@ func AboutRoute(res http.ResponseWriter, req *http.Request) {
 
 
 func FollowRoute(res http.ResponseWriter, req *http.Request) {
+
+
 	vars := mux.Vars(req)
+
+
+
+	fmt.Fprintln(res,getUserID(vars["userName"]))
+
+	fmt.Fprintln(res,getUserID(GetUserName(req)))
+
+	fmt.Fprintln(res,checkIfFollowed(vars["userName"],GetUserName(req))) 
+	
 
 	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
 		"loggedin": !IsEmpty(GetUserName(req)),
@@ -117,6 +128,7 @@ func FollowRoute(res http.ResponseWriter, req *http.Request) {
 		"posts": postsAmount(getUserPosts(vars["username"])),
 		"visitorUsername" : GetUserName(req),
 		"visit" : true,
+		"alreadyFollow" : checkIfFollowed(vars["userName"],GetUserName(req)),
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
@@ -124,6 +136,7 @@ func FollowRoute(res http.ResponseWriter, req *http.Request) {
 
 
 func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
+
 
 	if (IsEmpty(GetUserName(req))){
 		 http.Redirect(res, req, "/", 302)
@@ -458,4 +471,31 @@ func getUserID(username string) int{
 
 	return output
 
+}
+
+func checkIfFollowed(who string, whom string) bool{
+	var output bool
+
+	// Prepare your query
+	query, err := database.Prepare("select * from follower where follower.who_id = ? and follower.whom_id = ?")
+
+	if err != nil {
+		fmt.Printf("%s", err)
+	}
+
+	defer query.Close()
+
+	err = query.QueryRow(getUserID(who), getUserID(whom)).Scan(&output)
+
+	// Catch errors
+	switch {
+	case err == sql.ErrNoRows:
+			output = false
+	case err != nil:
+			output = true
+	default:
+			output = true
+	}
+
+	return output
 }
