@@ -13,34 +13,28 @@
   {{if .visit}}
 
   {{else}}
-    <h3>What's on your mind {{.username}} ?</h3>
+  <div class=twitbox>
+    <h3>What's on your mind {{ .username}}?</h3>
     <form action="/personaltimeline" method="post">
-        <p><input type=text name=text size=60>
-        <input type=submit value="Share">
+      <p><input type=text name=text size=60>
+      <input type=submit value="Share">
     </form>
-  {{end}}
-  
-   {{ if .posts}} 
-   <div class="w3-container">
-        
-    <div class="w3-card-4" style="width:70%">
-      <header class="w3-container w3-light-grey">
-        <h3>{{.username}}</h3>
-      </header>
-
-{{ range .postSlice }}
-      <div class="w3-container">
-        <hr>
-        <img src="https://d2x5ku95bkycr3.cloudfront.net/App_Themes/Common/images/profile/0_200.png" alt="Avatar" class="w3-left w3-circle w3-margin-right" style="width:60px">
-        <p>{{ .Text }}</p>
-        <p style="color: grey;">{{ .Date }}</p>
   </div>
-{{ end }}
+  {{end}}
+     
+<ul class=messages>
+  {{ if .posts}} 
+  {{ range .postSlice }}
+  <li><img height="48" width="48" src="https://www.gravatar.com/avatar/04d24379cd970b7670ee66fa203d646f?s=240&r=any&default=identicon&forcedefault=1"><p>
+    <strong><a href="/{{.Username}}">{{ .Username}}</a></strong>
+    {{ .Text }}
+    <small>&mdash; {{ .Date }}</small>
+    {{ end }}
+    {{else}}
+  <li><em>There's no message so far.</em>
+  {{ end }}
+  </ul>
 
-{{else}}
-  <ul class=messages>
-    <li><em>There's no message so far.</em>
-{{end}}
 
 
   </ul>

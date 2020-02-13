@@ -59,7 +59,12 @@ func main() {
 	router.HandleFunc("/{username}", FollowRoute).Methods("GET")
 	router.HandleFunc("/{username}", FollowHandler).Methods("POST")
 
-	port := 3003
+
+
+	router.HandleFunc("/timeline", TimelineRoute).Methods("GET")
+
+
+	port := 3002
 	log.Printf("Server starting on port %v\n", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%v", port), router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
@@ -105,6 +110,31 @@ func AboutRoute(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
+
+func TimelineRoute(res http.ResponseWriter, req *http.Request) {
+
+
+	vars := mux.Vars(req)	
+
+	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
+		"loggedin": !IsEmpty(GetUserName(req)),
+		"userpagename" : vars["username"],
+		"postSlice": getUserPosts(vars["username"]),
+		"posts": postsAmount(getUserPosts(vars["username"])),
+		"visitorUsername" : GetUserName(req),
+		"visit" : true,
+		"alreadyFollow" : checkIfFollowed(vars["username"],GetUserName(req)),
+		"requestlink" : req.URL.Path,
+		"publictimeline" : req.URL.Path == "/publictimeline",
+		"personaltimeline" : req.URL.Path == "/personaltimeline",
+		"usertimeline" : req.URL.Path == "/{username}",
+		"sameuser" : vars["username"] == GetUserName(req),
+    }); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+
 
 
 func FollowRoute(res http.ResponseWriter, req *http.Request) {
@@ -200,7 +230,7 @@ func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 func getAllPosts()[]Post{
 	var post Post
 
-	sqlStatement := `SELECT u.username, m.message_id, m.text, m.pub_date FROM message m join user u ON m.author_id = u.user_id`
+	sqlStatement := `SELECT u.username, m.message_id, m. text FROM message m join user u ON m.author_id = u.user_id`
 	rows, err := database.Query(sqlStatement)
 	if err != nil {
 		panic(err)
@@ -211,7 +241,7 @@ func getAllPosts()[]Post{
 
 	var postSlice []Post
 	for rows.Next(){
-		rows.Scan(&post.Username, &post.PostMessageid, &post.Text, &post.Date)
+		rows.Scan(&post.Username, &post.PostMessageid, &post.Text)
 		postSlice = append(postSlice, post)
 	}
 
@@ -242,10 +272,10 @@ func getUserPosts(username string)[]Post{
 	rows, err := query.Query(getUserID(username),getUserID(username))
 	defer rows.Close()
 	
+
 	var postSlice []Post
 	for rows.Next(){
 		rows.Scan(&post.PostMessageid, &post.AuthorId, &post.Text, &post.Date, &post.Flag )
-		post.Username = getUsernameFromID(post.AuthorId)
 		postSlice = append(postSlice, post)
 	}
 	
@@ -379,8 +409,7 @@ func loadTemplates() {
 
 	templates["signin"] = template.Must(template.ParseFiles(baseTemplate, "templates/account/signin.html"))
 	templates["signup"] = template.Must(template.ParseFiles(baseTemplate, "templates/account/signup.html"))
-	templates["personaltimeline"] = template.Must(template.ParseFiles(baseTemplate, "templates/home/personal_timeline.html"))
-	templates["publictimeline"] = template.Must(template.ParseFiles(baseTemplate, "templates/home/public_timeline.html"))
+	templates["timeline"] = template.Must(template.ParseFiles(baseTemplate, "templates/home/timeline.html"))
 }
 
  
@@ -442,7 +471,7 @@ func validUser(username string, psw string) bool {
 
 func getCurrentTime() string{
 	dt := time.Now()
-	return (dt.Format("15:04:05 02-01-2006"))
+    return ("" + dt.String())
 }
 
 func getUserID(username string) int{
@@ -456,22 +485,6 @@ func getUserID(username string) int{
 	defer query.Close()
 
 	err = query.QueryRow(username).Scan(&output)
-
-	return output
-
-}
-
-func getUsernameFromID(id int) string{
-	var output string
-
-	query, err := database.Prepare("SELECT username FROM user WHERE user_id = ?")
-
-	if err != nil {
-		fmt.Printf("%s", err)
-	}
-	defer query.Close()
-
-	err = query.QueryRow(id).Scan(&output)
 
 	return output
 
