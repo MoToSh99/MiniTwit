@@ -4,11 +4,16 @@
 
 <h1>Personal Timeline</h1>
 
+  {{if .visit}}
+
+  {{else}}
     <h3>What's on your mind {{.username}} ?</h3>
     <form action="/personaltimeline" method="post">
         <p><input type=text name=text size=60>
         <input type=submit value="Share">
     </form>
+  {{end}}
+  
    {{ if .posts}} 
    <div class="w3-container">
         

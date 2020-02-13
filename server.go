@@ -55,9 +55,13 @@ func main() {
 	router.HandleFunc("/signout", LogoutHandler)
 
 	router.HandleFunc("/publictimeline", PublicTimelineRoute).Methods("GET")
-    router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
+	router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
+	
 
-	if err := http.ListenAndServe(":3017", router); err != nil {
+	router.HandleFunc("/{username}", FollowRoute).Methods("GET")
+	router.HandleFunc("/{username}", FollowHandler).Methods("POST")
+
+	if err := http.ListenAndServe(":3001", router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 }
@@ -102,6 +106,23 @@ func AboutRoute(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+
+func FollowRoute(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+
+	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
+		"loggedin": !IsEmpty(GetUserName(req)),
+		"username" : vars["username"],
+		"postSlice": getUserPosts(vars["username"]),
+		"posts": postsAmount(getUserPosts(vars["username"])),
+		"visitorUsername" : GetUserName(req),
+		"visit" : true,
+    }); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+
 func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 
 	if (IsEmpty(GetUserName(req))){
@@ -116,6 +137,10 @@ func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func FollowHandler(res http.ResponseWriter, req *http.Request) {
+
 }
 
 
