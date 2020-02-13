@@ -32,8 +32,6 @@ func main() {
 	statement3, _ := database.Prepare("create table if not exists message (message_id integer primary key autoincrement,author_id integer not null,text string not null,pub_date integer,flagged integer);")
 	statement3.Exec()
 
-	fmt.Println("Server starting, point your browser to localhost:3011 to start")
-
 	router := mux.NewRouter()
 
 	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
@@ -57,7 +55,9 @@ func main() {
 	router.HandleFunc("/publictimeline", PublicTimelineRoute).Methods("GET")
     router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
 
-	if err := http.ListenAndServe(":3017", router); err != nil {
+	port := 3000
+	log.Printf("Server starting on port %v\n", port)
+	if err := http.ListenAndServe(fmt.Sprintf(":%v", port), router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 }
