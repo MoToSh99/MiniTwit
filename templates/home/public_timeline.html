@@ -3,19 +3,19 @@
 {{ define "content" }}
 
 <h1>Public Timeline</h1>
-<ul class="message">
+<ul class="messages">
 {{if eq 0 .postSliceLength}}
 <h3>
     There's no messages
 </h3>
 {{else}}
 {{ range .postSlice }}
-    <li>
-
+<div class="twitbox">
+    <li >
        <h3>{{ .Username}}</h3>
-       <img src="http://www.gravatar.com/avatar"/> 
        <p>{{ .Text }}</p>
     </li>
+</div>
 {{ end }}
 </ul>
 {{ end }}
