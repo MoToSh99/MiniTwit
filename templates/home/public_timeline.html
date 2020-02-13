@@ -11,8 +11,10 @@
 {{else}}
 {{ range .postSlice }}
     <li>
+
        <h3>{{ .Username}}</h3>
-        <p>{{ .Text }}</p>
+       <img src="http://www.gravatar.com/avatar"/> 
+       <p>{{ .Text }}</p>
     </li>
 {{ end }}
 </ul>
