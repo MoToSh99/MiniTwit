@@ -147,6 +147,7 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 type Post struct {
+	Username string
 	PostMessageid int
 	AuthorId int 
 	Text string
@@ -170,19 +171,21 @@ func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 func getAllPosts()[]Post{
 	var post Post
 
-	sqlStatement := `SELECT message_id, text FROM message`
+	sqlStatement := `SELECT u.username, m.message_id, m. text FROM message m join user u ON m.author_id = u.user_id`
 	rows, err := database.Query(sqlStatement)
-	 
+	if err != nil {
+		panic(err)
+	   }
+	
 	defer rows.Close()
 	
-	if err != nil {
-	 panic(err)
-	}
+
 	var postSlice []Post
 	for rows.Next(){
-		rows.Scan(&post.PostMessageid, &post.Text)
+		rows.Scan(&post.Username, &post.PostMessageid, &post.Text)
 		postSlice = append(postSlice, post)
 	}
+
 	
 	return postSlice;
 	
