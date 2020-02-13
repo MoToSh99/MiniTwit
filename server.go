@@ -32,8 +32,6 @@ func main() {
 	statement3, _ := database.Prepare("create table if not exists message (message_id integer primary key autoincrement,author_id integer not null,text string not null,pub_date integer,flagged integer);")
 	statement3.Exec()
 
-	fmt.Println("Server starting, point your browser to localhost:3011 to start")
-
 	router := mux.NewRouter()
 
 	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
@@ -55,9 +53,15 @@ func main() {
 	router.HandleFunc("/signout", LogoutHandler)
 
 	router.HandleFunc("/publictimeline", PublicTimelineRoute).Methods("GET")
-    router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
+	router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
+	
 
-	if err := http.ListenAndServe(":3017", router); err != nil {
+	router.HandleFunc("/{username}", FollowRoute).Methods("GET")
+	router.HandleFunc("/{username}", FollowHandler).Methods("POST")
+
+	port := 3000
+	log.Printf("Server starting on port %v\n", port)
+	if err := http.ListenAndServe(fmt.Sprintf(":%v", port), router); err != nil {
 		log.Fatal("ListenAndServe: ", err.Error())
 	}
 }
@@ -102,6 +106,23 @@ func AboutRoute(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+
+func FollowRoute(res http.ResponseWriter, req *http.Request) {
+	vars := mux.Vars(req)
+
+	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
+		"loggedin": !IsEmpty(GetUserName(req)),
+		"username" : vars["username"],
+		"postSlice": getUserPosts(vars["username"]),
+		"posts": postsAmount(getUserPosts(vars["username"])),
+		"visitorUsername" : GetUserName(req),
+		"visit" : true,
+    }); err != nil {
+		http.Error(res, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+
 func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 
 	if (IsEmpty(GetUserName(req))){
@@ -116,6 +137,10 @@ func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func FollowHandler(res http.ResponseWriter, req *http.Request) {
+
 }
 
 
@@ -147,6 +172,7 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 type Post struct {
+	Username string
 	PostMessageid int
 	AuthorId int 
 	Text string
@@ -170,19 +196,21 @@ func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 func getAllPosts()[]Post{
 	var post Post
 
-	sqlStatement := `SELECT message_id, text FROM message`
+	sqlStatement := `SELECT u.username, m.message_id, m. text FROM message m join user u ON m.author_id = u.user_id`
 	rows, err := database.Query(sqlStatement)
-	 
+	if err != nil {
+		panic(err)
+	   }
+	
 	defer rows.Close()
 	
-	if err != nil {
-	 panic(err)
-	}
+
 	var postSlice []Post
 	for rows.Next(){
-		rows.Scan(&post.PostMessageid, &post.Text)
+		rows.Scan(&post.Username, &post.PostMessageid, &post.Text)
 		postSlice = append(postSlice, post)
 	}
+
 	
 	return postSlice;
 	
