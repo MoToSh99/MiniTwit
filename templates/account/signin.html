@@ -1,14 +1,18 @@
-{{ define "title" }}Contact{{ end }}
+{{ define "title" }}Sign In{{ end }}
 
 {{ define "content" }}
 
-<div class="col-md-offset-4 col-md-4">
-<form class="form-signin" role="form" method="post" action="/signin">
-    <h2 class="form-signin-heading">Sign in</h2>
-    <input class="form-control" placeholder="Username" required autofocus name="username">
-    <input type="password" class="form-control" placeholder="Password" required name="password">
-    <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+<h2>Sign In</h2>
+<!--{{if .error}}<div class=error><strong>Error:</strong> {{ .error }}</div>{{end}}-->
+<form method="post" action="/signin">
+  <dl>
+    <dt>Username:
+    <dd><input type=text name=username size=30 name="username" required>
+    <dt>Password:
+    <dd><input type=password name=password size=30 required name="password">
+  </dl>
+  <div class=actions><input type=submit value="Sign In"></div>
 </form>
-</div>
 
 {{ end }}
+

@@ -1,0 +1,49 @@
+{{ define "title" }}Timeline{{ end }}
+{{ define "content" }}
+
+
+  {{if .publictimeline }}
+    Public Timeline
+  {{ else if .usertimeline }}
+    {{ .userpagename}}'s Timeline
+  {{else}}
+    My Timeline
+  {{end}}
+  <h2>Timeline</h2>
+  {{if .loggedin}}
+    {{if .usertimeline}}
+      <div class=followstatus>
+      {{if .sameuser}} 
+        This is you!
+      {{else if .alreadyFollow}}
+        You are currently following this user.
+        <a class=unfollow href="/unfollow">Unfollow user</a>.
+      {{ else }}
+        You are not yet following this user.
+        <a class=follow href="/follow">Follow user</a>.
+      {{ end }}
+      </div>
+    {{ else if .personaltimeline }}
+      <div class=twitbox>
+        <h3>What's on your mind {{ .visitorUsername}}?</h3>
+        <form action="/personaltimeline" method="post">
+          <p><input type=text name=text size=60><!--
+          --><input type=submit value="Share">
+        </form>
+      </div>
+    {{end}}
+  {{ end }}
+  <ul class=messages>
+  {{ if .posts}} 
+    {{ range .postSlice }}
+    <li><img src=""><p>
+      <strong><a href="/{{.visitorUsername }}"">{{ .visitorUsername }}</a></strong>
+      {{ .Text }}
+      <small>&mdash; {{ .Date }}</small>
+      {{ end }}
+  {{ else }}
+    <li><em>There's no message so far.</em>
+  {{ end }}
+  </ul>
+
+{{ end }}
