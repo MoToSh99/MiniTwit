@@ -56,8 +56,11 @@ func main() {
 	router.HandleFunc("/publictimeline", PublicTimelineHandler).Methods("POST")
 	
 
-	router.HandleFunc("/{username}", FollowRoute).Methods("GET")
-	router.HandleFunc("/{username}", FollowHandler).Methods("POST")
+	router.HandleFunc("/{username}", UserpageRoute).Methods("GET")
+	router.HandleFunc("/{username}", UserpageHandler).Methods("POST")
+
+	router.HandleFunc("/{username}/follow", UserFollowHandler)
+	router.HandleFunc("/{username}/unfollow", UserUnfollowHandler)
 
 	port := 3003
 	log.Printf("Server starting on port %v\n", port)
@@ -106,12 +109,45 @@ func AboutRoute(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func UserFollowHandler(res http.ResponseWriter, req *http.Request){
+	if (IsEmpty(GetUserName(req))){
+		res.WriteHeader(http.StatusUnauthorized)
+	}
+	
+	vars := mux.Vars(req)
 
-func FollowRoute(res http.ResponseWriter, req *http.Request) {
+	var database, _ = sql.Open("sqlite3", "./minitwit.db")
+	statement, _ := database.Prepare("insert into follower (who_id, whom_id) values (?, ?)")
+	statement.Exec(getUserID(GetUserName(req)),getUserID(vars["username"]))
+	statement.Close()
+	database.Close()
 
+	UserpageRoute(res, req)
+}
+
+func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
+	if (IsEmpty(GetUserName(req))){
+		res.WriteHeader(http.StatusUnauthorized)
+	}
+	
+	vars := mux.Vars(req)
+
+	var database, _ = sql.Open("sqlite3", "./minitwit.db")
+	statement, _ := database.Prepare("delete from follower where who_id=? and whom_id=?")
+	statement.Exec(getUserID(GetUserName(req)),getUserID(vars["username"]))
+	statement.Close()
+	database.Close()
+
+	UserpageRoute(res, req)
+}
+
+func UserpageRoute(res http.ResponseWriter, req *http.Request) {
 
 	vars := mux.Vars(req)	
 
+	if (!checkUsername(vars["username"])){
+		http.Redirect(res, req, "/", 302)
+	}
 	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
 		"loggedin": !IsEmpty(GetUserName(req)),
 		"username" : vars["username"],
@@ -120,11 +156,15 @@ func FollowRoute(res http.ResponseWriter, req *http.Request) {
 		"visitorUsername" : GetUserName(req),
 		"visit" : true,
 		"alreadyFollow" : checkIfFollowed(vars["username"],GetUserName(req)),
+		"sameUser" : vars["username"] == GetUserName(req),
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
+func UserpageHandler(res http.ResponseWriter, req *http.Request) {
+
+}
 
 func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 
@@ -143,9 +183,7 @@ func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func FollowHandler(res http.ResponseWriter, req *http.Request) {
 
-}
 
 
 func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
@@ -489,7 +527,7 @@ func checkIfFollowed(who string, whom string) bool{
 
 	defer query.Close()
 
-	err = query.QueryRow(getUserID(who), getUserID(whom)).Scan(&output)
+	err = query.QueryRow(getUserID(whom), getUserID(who)).Scan(&output)
 
 	// Catch errors
 	switch {
