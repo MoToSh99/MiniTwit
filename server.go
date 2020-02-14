@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/securecookie"
 	_ "github.com/mattn/go-sqlite3"
 	"time"
+	api "./api"
 )
 
 var cookieHandler = securecookie.New(
@@ -22,7 +23,8 @@ func init() {
 	loadTemplates()
 }
 
-var database, _ = sql.Open("sqlite3", "./minitwit.db")
+var databasepath = "/tmp/minitwit.db"
+var database, _ = sql.Open("sqlite3", databasepath)
 
 func main() {
 	statement, _ := database.Prepare("create table if not exists user (user_id integer primary key autoincrement,username string not null,email string not null,pw_hash string not null);")
@@ -43,8 +45,8 @@ func main() {
 	router.HandleFunc("/signin", LoginHandler).Methods("POST")
 
 
-	router.HandleFunc("/signup", SignupRoute).Methods("GET")
-	router.HandleFunc("/signup", RegisterHandler).Methods("POST")
+	router.HandleFunc("/register", SignupRoute).Methods("GET")
+	router.HandleFunc("/register", RegisterHandler).Methods("POST")
 	
 	router.HandleFunc("/personaltimeline", PersonalTimelineRoute).Methods("GET")
 	router.HandleFunc("/personaltimeline", PersonalTimelineHandler).Methods("POST")
@@ -62,11 +64,22 @@ func main() {
 	router.HandleFunc("/{username}/follow", UserFollowHandler)
 	router.HandleFunc("/{username}/unfollow", UserUnfollowHandler)
 
-	port := 3003
+	
+
+
+	apiRoute := mux.NewRouter()
+	apiRoute.HandleFunc("/test", api.Register)
+
+
+	port := 4999
 	log.Printf("Server starting on port %v\n", port)
-	if err := http.ListenAndServe(fmt.Sprintf(":%v", port), router); err != nil {
-		log.Fatal("ListenAndServe: ", err.Error())
-	}
+	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router))}()
+
+	apiport := 5001
+	log.Printf("Api Server starting on port %v\n", apiport)
+    go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute))}()
+	
+    select {}
 }
 
 
@@ -116,7 +129,7 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = sql.Open("sqlite3", "./minitwit.db")
+	var database, _ = sql.Open("sqlite3", databasepath)
 	statement, _ := database.Prepare("insert into follower (who_id, whom_id) values (?, ?)")
 	statement.Exec(getUserID(GetUserName(req)),getUserID(vars["username"]))
 	statement.Close()
@@ -132,7 +145,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = sql.Open("sqlite3", "./minitwit.db")
+	var database, _ = sql.Open("sqlite3", databasepath)
 	statement, _ := database.Prepare("delete from follower where who_id=? and whom_id=?")
 	statement.Exec(getUserID(GetUserName(req)),getUserID(vars["username"]))
 	statement.Close()
@@ -199,7 +212,7 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
  
     if _text {
 
-		var database, _ = sql.Open("sqlite3", "./minitwit.db")
+		var database, _ = sql.Open("sqlite3", databasepath)
 		statement, _ := database.Prepare("INSERT INTO message (author_id, text, pub_date,flagged) values (?, ?, ?, ?)")
 		statement.Exec(getUserID(GetUserName(req)),text,getCurrentTime(),0)
 		statement.Close()
@@ -326,7 +339,7 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
             SetCookie(name, response)
             redirectTarget = "/"
         } else {
-            redirectTarget = "/signup"
+            redirectTarget = "/register"
         }
     }
     http.Redirect(response, request, redirectTarget, 302)
@@ -343,16 +356,14 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
  
     uName := r.FormValue("username")
     email := r.FormValue("email")
-    pwd := r.FormValue("password")
-    confirmPwd := r.FormValue("confirmPassword")
+    pwd := r.FormValue("pwd")
  
-    _uName, _email, _pwd, _confirmPwd := false, false, false, false
+    _uName, _email, _pwd := false, false, false
     _uName = !IsEmpty(uName)
     _email = !IsEmpty(email)
     _pwd = !IsEmpty(pwd)
-    _confirmPwd = !IsEmpty(confirmPwd)
  
-    if _uName && _email && _pwd && _confirmPwd {
+    if _uName && _email && _pwd {
 
 		if (!checkUsername(uName)){
 
@@ -363,7 +374,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			fmt.Fprintln(w, "Email for Register : ", email)
 
 		} else {
-			fmt.Fprintln(w, "User alrady exits", confirmPwd)
+			fmt.Fprintln(w, "User alrady exits")
 		}
 
     } else {
