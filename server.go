@@ -134,8 +134,7 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	statement.Exec(getUserID(GetUserName(req)),getUserID(vars["username"]))
 	statement.Close()
 	database.Close()
-
-	UserpageRoute(res, req)
+    http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
 func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
@@ -151,7 +150,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	statement.Close()
 	database.Close()
 
-	UserpageRoute(res, req)
+    http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
 func UserpageRoute(res http.ResponseWriter, req *http.Request) {
