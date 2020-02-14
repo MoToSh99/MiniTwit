@@ -120,6 +120,7 @@ func FollowRoute(res http.ResponseWriter, req *http.Request) {
 		"visitorUsername" : GetUserName(req),
 		"visit" : true,
 		"alreadyFollow" : checkIfFollowed(vars["username"],GetUserName(req)),
+		"sameUser" : vars["username"] == GetUserName(req),
     }); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}

@@ -3,15 +3,25 @@
 {{ define "content" }}
 
 
-{{if .alreadyFollow}}
+{{if .sameUser}}
 
-<h1>YOU ARE ALRRADY D</h1>
-{{else}}
-<h1>Personal Timeline</h1>
+<h1>My Timeline</h1>
+{{else }}
+<h1>{{.username}}'s Timeline</h1>
 {{end}}
 
-  {{if .visit}}
 
+  {{if .visit}}
+  <div class=followstatus>
+      {{if .sameUser}} 
+        This is you!
+      {{else if .alreadyFollow}}
+        You are currently following this user.
+        <a class=unfollow href="/unfollow">Unfollow user</a>.
+      {{ else }}
+        You are not yet following this user.
+        <a class=follow href="/follow">Follow user</a>.
+      {{ end }}
   {{else}}
   <div class=twitbox>
     <h3>What's on your mind {{ .username}}?</h3>
