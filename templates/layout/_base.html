@@ -5,19 +5,19 @@
   <h1>MiniTwit</h1>
   <div class=navigation>
     {{if .loggedin}}
-    <a href="/personaltimeline">my timeline</a> |
-    <a href="/publictimeline">public timeline</a> |
-    <a href="/signout">sign out</a>
+    <a href="/personaltimeline">My Timeline</a> |
+    <a href="/publictimeline">Public Timeline</a> |
+    <a href="/signout">Sign out</a>
     {{else}}
-    <a href="/publictimeline">public timeline</a> |
-    <a href="/signup">sign up</a> |
-    <a href="/signin">sign in</a>
+    <a href="/publictimeline"Public Timeline</a> |
+    <a href="/signup">Sign up</a> |
+    <a href="/signin">Sign In</a>
     {{end}}
   </div>
   <div class=body>
     {{ template "content" . }}
   </div>
   <div class=footer>
-    MiniTwit &mdash; A Flask Application
+    MiniTwit &mdash; A Gorilla Application
   </div>
 </div>
