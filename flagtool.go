@@ -37,6 +37,20 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Println(rows)
+		for rows.Next(){
+			var message_id int
+			var author_id int
+			var text string
+			var pub_date string
+			var flagged int
+
+			err = rows.Scan(&message_id, &author_id, &text, &pub_date, &flagged)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(message_id,author_id,text,pub_date,flagged)
+
+		}
+		
 	}
 }
