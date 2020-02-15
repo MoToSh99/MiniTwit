@@ -29,6 +29,10 @@ func main() {
 		fmt.Println(helpString)
 	}
 
+	if len(argsWithoutProg) == 0 {
+		fmt.Println(helpString)
+	}
+
 	if len(argsWithoutProg) == 1 && argsWithoutProg[0] == "-i" {
 		query := "SELECT * FROM message"
 		rows, err := db.Query(query)
@@ -55,7 +59,7 @@ func main() {
 		
 	}
 
-	if len(argsWithoutProg) >= 0 && argsWithoutProg[0] != "-i"  && argsWithoutProg[0] != "-h" {
+	if len(argsWithoutProg) > 0 && argsWithoutProg[0] != "-i"  && argsWithoutProg[0] != "-h" {
 		for i := 1; i < len(argsWithoutProg)+1; i++ {
 			query := "Update message Set flagged=1 Where message_id="+argsWithoutProg[i-1]
 			_,err := db.Exec(query)
