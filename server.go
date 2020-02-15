@@ -288,7 +288,7 @@ func postsAmount(posts []Post) bool{
 func getUserPosts(username string)[]Post{
 	var post Post
 
-	query, err := database.Prepare("select message.* from message, user where message.flagged = 0 and message.author_id = user.user_id and (user.user_id = ? or	user.user_id in (select whom_id from follower where who_id = ?)) order by message.pub_date desc")
+	query, err := database.Prepare("select m.*, u.gravatar_url from message m JOIN user u on m.author_id = u.user_id where m.flagged = 0 and m.author_id = u.user_id and (u.user_id = ? or	u.user_id in (select whom_id from follower where who_id = ?)) order by m.pub_date desc")
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -299,7 +299,7 @@ func getUserPosts(username string)[]Post{
 	
 	var postSlice []Post
 	for rows.Next(){
-		rows.Scan(&post.PostMessageid, &post.AuthorId, &post.Text, &post.Date, &post.Flag )
+		rows.Scan(&post.PostMessageid, &post.AuthorId, &post.Text, &post.Date, &post.Flag, &post.Image)
 		post.Username = getUsernameFromID(post.AuthorId)
 		postSlice = append(postSlice, post)
 	}
