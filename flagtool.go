@@ -21,23 +21,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer db.Close()
 
 	argsWithoutProg := os.Args[1:]
+
 	if len(argsWithoutProg) == 1 && argsWithoutProg[0] == "-h" {
 		fmt.Println(helpString)
 	}
+
 	if len(argsWithoutProg) == 1 && argsWithoutProg[0] == "-i" {
 		query := "SELECT * FROM message"
-		/* Execute SQL statement */
-		/*rc = sqlite3_exec(db, query, callback, (void *)data, &zErrMsg);
-		    if (rc != SQLITE_OK) {
-		      fprintf(stderr, "SQL error: %s\n", zErrMsg);
-			  sqlite3_free(zErrMsg);*/
 		rows, err := db.Query(query)
+
 		if err != nil {
 			log.Fatal(err)
 		}
+		defer rows.Close()
+
 		for rows.Next(){
+			//These names are dependant on column names, so ignore _ warning
 			var message_id int
 			var author_id int
 			var text string
@@ -49,8 +51,20 @@ func main() {
 				log.Fatal(err)
 			}
 			fmt.Println(message_id,author_id,text,pub_date,flagged)
-
 		}
 		
+	}
+
+	if len(argsWithoutProg) >= 0 && argsWithoutProg[0] != "-i"  && argsWithoutProg[0] != "-h" {
+		for i := 1; i < len(argsWithoutProg)+1; i++ {
+			query := "Update message Set flagged=1 Where message_id="+argsWithoutProg[i-1]
+			_,err := db.Exec(query)
+			if err!= nil {
+				log.Fatal(err)
+				fmt.Println("error with flagging")
+			}else{
+				fmt.Println("Flagged entry: " + argsWithoutProg[i-1] + "\n")
+			}
+		}
 	}
 }
