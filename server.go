@@ -70,9 +70,14 @@ func main() {
 
 	
 
-
 	apiRoute := mux.NewRouter()
-	apiRoute.HandleFunc("/test", api.Register)
+	apiRoute.HandleFunc("/test", api.Test)
+	apiRoute.HandleFunc("/latest", api.Get_latest)
+	apiRoute.HandleFunc("/register", api.Register).Methods("POST")
+	apiRoute.HandleFunc("/msgs", api.Messages)
+	apiRoute.HandleFunc("/msgs/{username}", api.Messages_per_user)
+	apiRoute.HandleFunc("/fllws/{username}", api.Follow)
+
 
 
 	port := 4999
