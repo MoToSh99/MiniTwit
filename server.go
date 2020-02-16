@@ -31,7 +31,7 @@ var databasepath = "/tmp/minitwit.db"
 var database, _ = sql.Open("sqlite3", databasepath)
 
 func main() {
-	statement, _ := database.Prepare("create table if not exists user (user_id integer primary key autoincrement,username string not null,email string not null,pw_hash string not null);")
+	statement, _ := database.Prepare("create table if not exists user (user_id integer primary key autoincrement,username string not null,email string not null,pw_hash string not null,image_url string);")
 	statement.Exec()
 	statement2, _ := database.Prepare("create table if not exists follower ( who_id integer, whom_id integer);")
 	statement2.Exec()
@@ -255,7 +255,7 @@ func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 func getAllPosts()[]Post{
 	var post Post
 
-	sqlStatement := `SELECT u.username, m.message_id, m.text, m.pub_date, u.gravatar_url FROM message m join user u ON m.author_id = u.user_id`
+	sqlStatement := `SELECT u.username, m.message_id, m.text, m.pub_date, u.image_url FROM message m join user u ON m.author_id = u.user_id order by m.pub_date desc`
 	rows, err := database.Query(sqlStatement)
 	if err != nil {
 		panic(err)
@@ -288,7 +288,7 @@ func postsAmount(posts []Post) bool{
 func getUserPosts(username string)[]Post{
 	var post Post
 
-	query, err := database.Prepare("select m.*, u.gravatar_url from message m JOIN user u on m.author_id = u.user_id where m.flagged = 0 and m.author_id = u.user_id and (u.user_id = ? or	u.user_id in (select whom_id from follower where who_id = ?)) order by m.pub_date desc")
+	query, err := database.Prepare("select m.*, u.image_url  from message m JOIN user u on m.author_id = u.user_id where m.flagged = 0 and m.author_id = u.user_id and (u.user_id = ? or	u.user_id in (select whom_id from follower where who_id = ?)) order by m.pub_date desc")
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -382,7 +382,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		if (!checkUsername(uName)){
 		
 			gravatar_url := "http://www.gravatar.com/avatar/" + getGravatarHash(email)
-			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash, gravatar_url) values (?, ?, ?, ?)")
+			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash, image_url) values (?, ?, ?, ?)")
     		statement.Exec(uName,email,pwd,gravatar_url)
 
 			fmt.Fprintln(w, "Username for Register : ", uName)
