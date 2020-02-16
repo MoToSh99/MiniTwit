@@ -37,7 +37,7 @@
 <ul class=messages>
   {{ if .posts}} 
   {{ range .postSlice }}
-  <li><img height="48" width="48" src="https://www.gravatar.com/avatar/04d24379cd970b7670ee66fa203d646f?s=240&r=any&default=identicon&forcedefault=1"><p>
+  <li><img height="48" width="48" src="{{.Image}}"><p>
     <strong><a href="/{{.Username}}">{{ .Username}}</a></strong>
     {{ .Text }}
     <small>&mdash; {{ .Date }}</small>

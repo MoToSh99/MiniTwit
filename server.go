@@ -10,6 +10,10 @@ import (
 	"github.com/gorilla/securecookie"
 	_ "github.com/mattn/go-sqlite3"
 	"time"
+	"strings"
+	"io"
+	"encoding/hex"
+	"crypto/md5"
 	api "./api"
 )
 
@@ -232,6 +236,7 @@ type Post struct {
 	Text string
 	Date string
 	Flag int
+	Image string
 }
 
 func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
@@ -250,7 +255,7 @@ func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 func getAllPosts()[]Post{
 	var post Post
 
-	sqlStatement := `SELECT u.username, m.message_id, m.text, m.pub_date FROM message m join user u ON m.author_id = u.user_id`
+	sqlStatement := `SELECT u.username, m.message_id, m.text, m.pub_date, u.gravatar_url FROM message m join user u ON m.author_id = u.user_id`
 	rows, err := database.Query(sqlStatement)
 	if err != nil {
 		panic(err)
@@ -261,7 +266,7 @@ func getAllPosts()[]Post{
 
 	var postSlice []Post
 	for rows.Next(){
-		rows.Scan(&post.Username, &post.PostMessageid, &post.Text, &post.Date)
+		rows.Scan(&post.Username, &post.PostMessageid, &post.Text, &post.Date, &post.Image)
 		postSlice = append(postSlice, post)
 	}
 
@@ -283,7 +288,7 @@ func postsAmount(posts []Post) bool{
 func getUserPosts(username string)[]Post{
 	var post Post
 
-	query, err := database.Prepare("select message.* from message, user where message.flagged = 0 and message.author_id = user.user_id and (user.user_id = ? or	user.user_id in (select whom_id from follower where who_id = ?)) order by message.pub_date desc")
+	query, err := database.Prepare("select m.*, u.gravatar_url from message m JOIN user u on m.author_id = u.user_id where m.flagged = 0 and m.author_id = u.user_id and (u.user_id = ? or	u.user_id in (select whom_id from follower where who_id = ?)) order by m.pub_date desc")
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -294,7 +299,7 @@ func getUserPosts(username string)[]Post{
 	
 	var postSlice []Post
 	for rows.Next(){
-		rows.Scan(&post.PostMessageid, &post.AuthorId, &post.Text, &post.Date, &post.Flag )
+		rows.Scan(&post.PostMessageid, &post.AuthorId, &post.Text, &post.Date, &post.Flag, &post.Image)
 		post.Username = getUsernameFromID(post.AuthorId)
 		postSlice = append(postSlice, post)
 	}
@@ -349,6 +354,16 @@ func SignupRoute(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
+func getGravatarHash(g_email string) string {
+	g_email = strings.TrimSpace(g_email)
+	g_email = strings.ToLower(g_email)
+	h := md5.New()
+	io.WriteString(h, g_email)
+	finalBytes := h.Sum(nil)
+	finalString := hex.EncodeToString(finalBytes)
+	return finalString
+}
+
 // for POST
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
     r.ParseForm()
@@ -365,9 +380,10 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
     if _uName && _email && _pwd {
 
 		if (!checkUsername(uName)){
-
-			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash) values (?, ?, ?)")
-    		statement.Exec(uName,email,pwd)
+		
+			gravatar_url := "http://www.gravatar.com/avatar/" + getGravatarHash(email)
+			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash, gravatar_url) values (?, ?, ?, ?)")
+    		statement.Exec(uName,email,pwd,gravatar_url)
 
 			fmt.Fprintln(w, "Username for Register : ", uName)
 			fmt.Fprintln(w, "Email for Register : ", email)
