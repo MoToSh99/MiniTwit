@@ -270,7 +270,6 @@ func getAllPosts()[]Post{
 	   }
 	
 	defer rows.Close()
-	database.Close()
 	
 
 	var postSlice []Post
@@ -280,9 +279,9 @@ func getAllPosts()[]Post{
 	}
 
 	
-	return postSlice;
-	
+	database.Close()
 
+	return postSlice;
 }
 
 func postsAmount(posts []Post) bool{
@@ -308,7 +307,6 @@ func getUserPosts(username string)[]Post{
 
 	rows, err := query.Query(getUserID(username),getUserID(username))
 	defer rows.Close()
-	database.Close()
 	
 	var postSlice []Post
 	for rows.Next(){
@@ -316,6 +314,8 @@ func getUserPosts(username string)[]Post{
 		post.Username = getUsernameFromID(post.AuthorId)
 		postSlice = append(postSlice, post)
 	}
+
+	database.Close()
 	
 	return postSlice;
 
@@ -471,8 +471,7 @@ func checkUsername(username string) bool {
 	var database, _ = sql.Open("sqlite3", databasepath)
 	// Prepare your query
 	query, err := database.Prepare("SELECT user_id FROM user WHERE username= ?")
-	database.Close()
-
+	
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
@@ -491,6 +490,9 @@ func checkUsername(username string) bool {
 			output = true
 	}
 
+	database.Close()
+
+
 	return output
 
 }
@@ -503,7 +505,7 @@ func validUser(username string, psw string) bool {
 	// Prepare your query
 	query, err := database.Prepare("SELECT user_id FROM user WHERE username = ? AND pw_hash = ?")
 
-	database.Close()
+	
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
@@ -522,6 +524,8 @@ func validUser(username string, psw string) bool {
 			output = true
 	}
 
+	database.Close()
+
 	return output
 
 }
@@ -537,7 +541,7 @@ func getUserID(username string) int{
 
 	var database, _ = sql.Open("sqlite3", databasepath)
 	query, err := database.Prepare("SELECT user_id FROM user WHERE username = ?")
-	database.Close()
+	
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -546,6 +550,9 @@ func getUserID(username string) int{
 
 	err = query.QueryRow(username).Scan(&output)
 
+
+	database.Close()
+	
 	return output
 
 }
@@ -555,7 +562,7 @@ func getUsernameFromID(id int) string{
 
 	var database, _ = sql.Open("sqlite3", databasepath)
 	query, err := database.Prepare("SELECT username FROM user WHERE user_id = ?")
-	database.Close()
+	
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -563,6 +570,8 @@ func getUsernameFromID(id int) string{
 	defer query.Close()
 
 	err = query.QueryRow(id).Scan(&output)
+
+	database.Close()
 
 	return output
 
@@ -574,7 +583,7 @@ func checkIfFollowed(who string, whom string) bool{
 	// Prepare your query
 	var database, _ = sql.Open("sqlite3", databasepath)
 	query, err := database.Prepare("select * from follower where follower.who_id = ? and follower.whom_id = ?")
-	database.Close()
+	
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -593,6 +602,7 @@ func checkIfFollowed(who string, whom string) bool{
 	default:
 			output = true
 	}
+	database.Close()
 
 	return output
 }
