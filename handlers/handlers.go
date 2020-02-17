@@ -7,8 +7,40 @@ import (
 	"database/sql"
 	helper "../helpers"
 	cookies "../cookies"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
+type Post struct {
+	Username string
+	PostMessageid int
+	AuthorId int 
+	Text string
+	Date string
+	Flag int
+	Image string
+}
 
+
+type User struct  {
+	user_id int
+	username string
+	email string
+	pw_hash string
+	image_url string
+  }
+
+  type follower struct  {
+	who_id int
+	whom_id int
+  }
+  
+  type message struct  {
+	message_id int
+	author_id int
+	text string 
+	pub_date string
+	flagged int
+  }
 
 var databasepath = "/tmp/minitwit.db"
 
@@ -19,11 +51,14 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = sql.Open("sqlite3", databasepath)
-	statement, _ := database.Prepare("insert into follower (who_id, whom_id) values (?, ?)")
-	statement.Exec(helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"]))
-	statement.Close()
-	database.Close()
+	var database, _ = gorm.Open("sqlite3", databasepath)
+
+	Follower := follower{who_id: helper.GetUserID(helper.GetUserName(req)), whom_id: helper.GetUserID(vars["username"])}
+
+	database.NewRecord(Follower)
+
+	database.Create(Follower)
+
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
@@ -35,7 +70,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	vars := mux.Vars(req)
 
 	var database, _ = sql.Open("sqlite3", databasepath)
-	statement, _ := database.Prepare("delete from follower where who_id=? and whom_id=?")
+	statement, _ := database.Prepare("delete from followers where who_id=? and whom_id=?")
 	statement.Exec(helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"]))
 	statement.Close()
 	database.Close()
@@ -60,10 +95,16 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		if (!helper.CheckUsernameExists(uName)){
 		
 
-			var database, _ = sql.Open("sqlite3", databasepath)
+			var database, _ = gorm.Open("sqlite3", databasepath)
+
 			gravatar_url := "http://www.gravatar.com/avatar/" + helper.GetGravatarHash(email)
-			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash, image_url) values (?, ?, ?, ?)")
-			statement.Exec(uName,email,pwd,gravatar_url)
+		
+			user := User{username: uName, email: email, pw_hash: pwd, image_url: gravatar_url}
+			fmt.Fprintln(w, "Username for Register : ", uName)
+			database.NewRecord(user)
+		
+			database.Create(&user)
+
 			database.Close()
 
 			fmt.Fprintln(w, "Username for Register : ", uName)
@@ -114,10 +155,15 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
  
     if _text {
 
-		var database, _ = sql.Open("sqlite3", databasepath)
-		statement, _ := database.Prepare("INSERT INTO message (author_id, text, pub_date,flagged) values (?, ?, ?, ?)")
-		statement.Exec(helper.GetUserID(helper.GetUserName(req)),text,helper.GetCurrentTime(),0)
-		statement.Close()
+		var database, _ = gorm.Open("sqlite3", databasepath)
+	
+		Message := message{author_id:helper.GetUserID(helper.GetUserName(req)),text:text,pub_date:helper.GetCurrentTime(),flagged:0}
+
+		database.NewRecord(Message)
+		
+		database.Create(Message)
+
+
 		database.Close()
 
 	} else {

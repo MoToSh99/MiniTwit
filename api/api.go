@@ -10,6 +10,8 @@ import (
     "database/sql"
     "github.com/gorilla/mux"
     "github.com/Jeffail/gabs"
+    "github.com/jinzhu/gorm"
+    _ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 var databasepath = "/tmp/minitwit.db"
 
@@ -27,11 +29,6 @@ type Message struct {
 }
 
 
-
-
-func Test(res http.ResponseWriter, req *http.Request) {
-    fmt.Fprintln(res, "You have arrived at the API Server!")
-}
 
 
 func Not_req_from_simulator(w http.ResponseWriter, r *http.Request){
@@ -116,10 +113,11 @@ func Messages(w http.ResponseWriter, r *http.Request){
    Not_req_from_simulator(w,r)
 
 
-    var database, _ = sql.Open("sqlite3", databasepath)
-    query, _ := database.Prepare("SELECT m.text, m.pub_date, u.username FROM message m, user u WHERE m.flagged = 0 AND m.author_id = u.user_id ORDER BY m.pub_date DESC LIMIT ?")
-    no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-    rows, _ := query.Query(no)
+    var database, _ = gorm.Open("sqlite3", databasepath)
+    //rows, _ := database.Prepare("SELECT m.text, m.pub_date, u.username FROM message m, user u WHERE m.flagged = 0 AND m.author_id = u.user_id ORDER BY m.pub_date DESC LIMIT ?")
+    rows, _ := database.Raw("SELECT m.text, m.pub_date, u.username FROM message m, user u WHERE m.flagged = 0 AND m.author_id = u.user_id ORDER BY m.pub_date DESC").Rows() 
+    //no, _ := strconv.Atoi(r.URL.Query().Get("no"))
+    //rows, _ := query.Query(no)
     database.Close()
 
 
@@ -260,7 +258,5 @@ func Follow(w http.ResponseWriter, r *http.Request){
         w.Header().Set("Content-Type", "application/json")
         w.WriteHeader(http.StatusOK)
         fmt.Fprintln(w,jsonObj.StringIndent("", "  "))
-
-        
     }
 }
