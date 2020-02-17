@@ -213,9 +213,6 @@ func Follow(w http.ResponseWriter, r *http.Request){
         }
     }
 
-   
- 
-
 
     if (!helpers.CheckUsernameExists(vars["username"])){
         w.WriteHeader(http.StatusNotFound)
@@ -228,7 +225,7 @@ func Follow(w http.ResponseWriter, r *http.Request){
         }
         var database, _ = sql.Open("sqlite3", databasepath)
         statement, _ := database.Prepare("insert into follower (who_id, whom_id) values (?, ?)")
-        statement.Exec(helpers.GetUserID(follows_username),helpers.GetUserID(vars["username"]))
+        statement.Exec(helpers.GetUserID(vars["username"]),helpers.GetUserID(follows_username))
         statement.Close()
         database.Close()
 
@@ -239,7 +236,7 @@ func Follow(w http.ResponseWriter, r *http.Request){
         }
         var database, _ = sql.Open("sqlite3", databasepath)
         statement, _ := database.Prepare("delete from follower where who_id=? and whom_id=?")
-        statement.Exec(helpers.GetUserID(unfollows_username),helpers.GetUserID(vars["username"]))
+        statement.Exec(helpers.GetUserID(vars["username"]),helpers.GetUserID(unfollows_username))
         statement.Close()
         database.Close()
 
