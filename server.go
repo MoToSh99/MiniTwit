@@ -28,15 +28,17 @@ func init() {
 }
 
 var databasepath = "/tmp/minitwit.db"
-var database, _ = sql.Open("sqlite3", databasepath)
 
 func main() {
+
+	var database, _ = sql.Open("sqlite3", databasepath)
 	statement, _ := database.Prepare("create table if not exists user (user_id integer primary key autoincrement,username string not null,email string not null,pw_hash string not null,image_url string);")
 	statement.Exec()
 	statement2, _ := database.Prepare("create table if not exists follower ( who_id integer, whom_id integer);")
 	statement2.Exec()
 	statement3, _ := database.Prepare("create table if not exists message (message_id integer primary key autoincrement,author_id integer not null,text string not null,pub_date integer,flagged integer);")
 	statement3.Exec()
+	database.Close()
 
 	router := mux.NewRouter()
 
@@ -70,9 +72,14 @@ func main() {
 
 	
 
-
 	apiRoute := mux.NewRouter()
-	apiRoute.HandleFunc("/test", api.Register)
+	apiRoute.HandleFunc("/test", api.Test)
+	apiRoute.HandleFunc("/latest", api.Get_latest)
+	apiRoute.HandleFunc("/register", api.Register).Methods("POST")
+	apiRoute.HandleFunc("/msgs", api.Messages)
+	apiRoute.HandleFunc("/msgs/{username}", api.Messages_per_user)
+	apiRoute.HandleFunc("/fllws/{username}", api.Follow)
+
 
 
 	port := 4999
@@ -255,6 +262,7 @@ func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
 func getAllPosts()[]Post{
 	var post Post
 
+	var database, _ = sql.Open("sqlite3", databasepath)
 	sqlStatement := `SELECT u.username, m.message_id, m.text, m.pub_date, u.image_url FROM message m join user u ON m.author_id = u.user_id order by m.pub_date desc`
 	rows, err := database.Query(sqlStatement)
 	if err != nil {
@@ -271,9 +279,9 @@ func getAllPosts()[]Post{
 	}
 
 	
-	return postSlice;
-	
+	database.Close()
 
+	return postSlice;
 }
 
 func postsAmount(posts []Post) bool{
@@ -288,11 +296,14 @@ func postsAmount(posts []Post) bool{
 func getUserPosts(username string)[]Post{
 	var post Post
 
+
+	var database, _ = sql.Open("sqlite3", databasepath)
 	query, err := database.Prepare("select m.*, u.image_url  from message m JOIN user u on m.author_id = u.user_id where m.flagged = 0 and m.author_id = u.user_id and (u.user_id = ? or	u.user_id in (select whom_id from follower where who_id = ?)) order by m.pub_date desc")
 
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
+
 
 	rows, err := query.Query(getUserID(username),getUserID(username))
 	defer rows.Close()
@@ -303,6 +314,8 @@ func getUserPosts(username string)[]Post{
 		post.Username = getUsernameFromID(post.AuthorId)
 		postSlice = append(postSlice, post)
 	}
+
+	database.Close()
 	
 	return postSlice;
 
@@ -381,9 +394,12 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		if (!checkUsername(uName)){
 		
+
+			var database, _ = sql.Open("sqlite3", databasepath)
 			gravatar_url := "http://www.gravatar.com/avatar/" + getGravatarHash(email)
 			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash, image_url) values (?, ?, ?, ?)")
-    		statement.Exec(uName,email,pwd,gravatar_url)
+			statement.Exec(uName,email,pwd,gravatar_url)
+			database.Close()
 
 			fmt.Fprintln(w, "Username for Register : ", uName)
 			fmt.Fprintln(w, "Email for Register : ", email)
@@ -451,9 +467,11 @@ func loadTemplates() {
 func checkUsername(username string) bool {
 	var output bool
 
+
+	var database, _ = sql.Open("sqlite3", databasepath)
 	// Prepare your query
 	query, err := database.Prepare("SELECT user_id FROM user WHERE username= ?")
-
+	
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
@@ -472,6 +490,9 @@ func checkUsername(username string) bool {
 			output = true
 	}
 
+	database.Close()
+
+
 	return output
 
 }
@@ -479,9 +500,12 @@ func checkUsername(username string) bool {
 func validUser(username string, psw string) bool {
 	var output bool
 
+
+	var database, _ = sql.Open("sqlite3", databasepath)
 	// Prepare your query
 	query, err := database.Prepare("SELECT user_id FROM user WHERE username = ? AND pw_hash = ?")
 
+	
 	if err != nil {
 		fmt.Printf("%s", err)
 	}
@@ -500,6 +524,8 @@ func validUser(username string, psw string) bool {
 			output = true
 	}
 
+	database.Close()
+
 	return output
 
 }
@@ -512,7 +538,10 @@ func getCurrentTime() string{
 func getUserID(username string) int{
 	var output int
 	// Prepare your query
+
+	var database, _ = sql.Open("sqlite3", databasepath)
 	query, err := database.Prepare("SELECT user_id FROM user WHERE username = ?")
+	
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -521,6 +550,9 @@ func getUserID(username string) int{
 
 	err = query.QueryRow(username).Scan(&output)
 
+
+	database.Close()
+	
 	return output
 
 }
@@ -528,7 +560,9 @@ func getUserID(username string) int{
 func getUsernameFromID(id int) string{
 	var output string
 
+	var database, _ = sql.Open("sqlite3", databasepath)
 	query, err := database.Prepare("SELECT username FROM user WHERE user_id = ?")
+	
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -536,6 +570,8 @@ func getUsernameFromID(id int) string{
 	defer query.Close()
 
 	err = query.QueryRow(id).Scan(&output)
+
+	database.Close()
 
 	return output
 
@@ -545,7 +581,9 @@ func checkIfFollowed(who string, whom string) bool{
 	var output bool
 
 	// Prepare your query
+	var database, _ = sql.Open("sqlite3", databasepath)
 	query, err := database.Prepare("select * from follower where follower.who_id = ? and follower.whom_id = ?")
+	
 
 	if err != nil {
 		fmt.Printf("%s", err)
@@ -564,6 +602,7 @@ func checkIfFollowed(who string, whom string) bool{
 	default:
 			output = true
 	}
+	database.Close()
 
 	return output
 }
