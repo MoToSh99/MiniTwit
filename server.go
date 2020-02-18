@@ -32,6 +32,9 @@ func main() {
 
 	router := mux.NewRouter()
 
+
+	router.HandleFunc("/favicon.ico", faviconHandler)
+
 	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	router.HandleFunc("/", handler.PublicTimelineRoute).Methods("GET")
 	router.HandleFunc("/about", handler.AboutRoute).Methods("GET")
@@ -70,6 +73,7 @@ func main() {
 
 
 
+
 	port := 4999
 	log.Printf("Server starting on port %v\n", port)
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router))}()
@@ -81,4 +85,7 @@ func main() {
     select {}
 }
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "/public/favicon.ico")
+}
 

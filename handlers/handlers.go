@@ -9,6 +9,7 @@ import (
 	cookies "../cookies"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	structs "../structs"
 )
 type Post struct {
 	Username string
@@ -53,12 +54,9 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 
 	var database, _ = gorm.Open("sqlite3", databasepath)
 
-	Follower := follower{who_id: helper.GetUserID(helper.GetUserName(req)), whom_id: helper.GetUserID(vars["username"])}
-
-	database.NewRecord(Follower)
-
-	database.Create(Follower)
-
+	follow := structs.Follower{Who_id: helper.GetUserID(helper.GetUserName(req)), Whom_id: helper.GetUserID(vars["username"])}
+	database.NewRecord(follow)
+	database.Create(&follow)
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
@@ -91,27 +89,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
     _pwd = !helper.IsEmpty(pwd)
  
     if _uName && _email && _pwd {
-
 		if (!helper.CheckUsernameExists(uName)){
-		
-
 			var database, _ = gorm.Open("sqlite3", databasepath)
-
 			gravatar_url := "http://www.gravatar.com/avatar/" + helper.GetGravatarHash(email)
 		
-			user := User{username: uName, email: email, pw_hash: pwd, image_url: gravatar_url}
-			fmt.Fprintln(w, "Username for Register : ", uName)
+			user := structs.User{Username: uName, Email: email, Pw_hash: pwd, Image_url: gravatar_url}
 			database.NewRecord(user)
-		
 			database.Create(&user)
-
 			database.Close()
 
-			fmt.Fprintln(w, "Username for Register : ", uName)
-			fmt.Fprintln(w, "Email for Register : ", email)
-
+			cookies.SetCookie(uName, w)
+			redirectTarget := "/personaltimeline"
+			http.Redirect(w, r, redirectTarget, 302)
 		} else {
-			fmt.Fprintln(w, "User alrady exits")
+			fmt.Fprintln(w, "User already exits")
 		}
 
     } else {
@@ -144,30 +135,19 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
 
 func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
- 
+
     text := req.FormValue("text")
- 
 	_text := false
-	
 	_text = !helper.IsEmpty(text) 
 
-
- 
     if _text {
-
 		var database, _ = gorm.Open("sqlite3", databasepath)
-	
-		Message := message{author_id:helper.GetUserID(helper.GetUserName(req)),text:text,pub_date:helper.GetCurrentTime(),flagged:0}
-
-		database.NewRecord(Message)
-		
-		database.Create(Message)
-
-
+		message := structs.Message{Author_id:helper.GetUserID(helper.GetUserName(req)),Text:text,Pub_date:helper.GetCurrentTime(),Flagged:0}
+		database.NewRecord(message)
+		database.Create(&message)
 		database.Close()
 
-	} else {
-		
+	} else {	
 		fmt.Fprintln(res, "Error")
 	}
 

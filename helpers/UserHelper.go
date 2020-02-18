@@ -15,14 +15,6 @@ import (
 
 var databasepath = "/tmp/minitwit.db"
 
-type User struct {
-	user_id   int
-	username  string
-	email     string
-	pw_hash   string
-	image_url string
-}
-
 type Post struct {
 	Username      string
 	PostMessageid int
@@ -89,11 +81,17 @@ func GetAllPosts() []Post {
 	}
 	defer db.Close()
 
-	var post []Post
-	db.Table("users").Select("users.username").Joins("join messages on users.user_id = messages.author_id").Order("messages.pub_date desc").Scan(&post)
+	messages := []structs.Message{}
 
-	return post
+	db.Order("pub_date desc").Where("flagged = ?",0).Find(&messages)
 
+	var postSlice []Post
+	for _, m := range messages {
+		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
+		postSlice = append(postSlice, post)
+	}
+
+	return postSlice;
 }
 
 func GetUserName(request *http.Request) (userName string) {
@@ -147,13 +145,21 @@ func GetUserPosts(username string) []Post {
 	}
 	defer db.Close()
 
-	var post []Post
+	messages := []structs.Message{}
+	
+	db.Order("pub_date desc").Where("flagged = ? AND author_id = ? ",0, GetUserID(username)).Or("author_id in (select whom_id from followers where who_id = ?)", GetUserID(username)).Find(&messages)
 
-	db.Table("users").Select("users.username, m.*").Joins("join messages m on users.user_id = m.author_id").Where("m.flagged = ? and m.author_id = u.user_id and (u.user_id = ? or u.user_id in (select whom_id from followers where who_id = ?))", 0, GetUserID(username), GetUserID(username)).Scan(&post)
+	var postSlice []Post
+	for _, m := range messages {
+		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
+		postSlice = append(postSlice, post)
+	}
 
-	return post
+	return postSlice;
 
 }
+
+
 
 func GetUsernameFromID(id int) string {
 	db, err := gorm.Open("sqlite3", databasepath)
@@ -167,6 +173,21 @@ func GetUsernameFromID(id int) string {
 	db.Where("user_id = ?", id).First(&user)
 
 	return user.Username
+
+}
+
+func GetImageFromID(id int) string {
+	db, err := gorm.Open("sqlite3", databasepath)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	user := structs.User{}
+
+	db.Where("user_id = ?", id).First(&user)
+
+	return user.Image_url
 
 }
 
@@ -184,20 +205,16 @@ func CheckIfFollowed(who string, whom string) bool {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	defer db.Close()
+	defer db.Close()	
+	output := []structs.Follower{}
+	db.Where("who_id = ? AND whom_id = ?", GetUserID(whom), GetUserID(who)).Find(&output)
 
-	type Output struct {
-		Who_id  int
-		Whom_id int
-	}
-	var output []Output
-	db.Table("followers").Select("*").Where("followers.who_id = ? AND followers.whom_id = ?", who, whom).Scan(&output)
 	var rtn bool
-	// Catch errors
 	if len(output) < 1 {
 		rtn = false
 	} else {
 		rtn = true
 	}
+
 	return rtn
 }
