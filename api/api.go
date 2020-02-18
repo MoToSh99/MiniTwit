@@ -12,9 +12,9 @@ import (
     "github.com/Jeffail/gabs"
     "github.com/jinzhu/gorm"
     _ "github.com/jinzhu/gorm/dialects/sqlite"
+    structs "../structs"
 )
 var databasepath = "/tmp/minitwit.db"
-
 var gLATEST = 0;
 
 type User struct {
@@ -28,9 +28,6 @@ type Message struct {
     Text  string `json:"content"`
 }
 
-
-
-
 func Not_req_from_simulator(w http.ResponseWriter, r *http.Request){
     from_simulator := r.Header.Get("Authorization")
     if from_simulator != "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh"{
@@ -38,17 +35,11 @@ func Not_req_from_simulator(w http.ResponseWriter, r *http.Request){
         w.WriteHeader(http.StatusForbidden)
         w.Write([]byte(fmt.Sprintf(`{"status": 403, "error_msg": %v}`, error)))
     }
-
-    
 }
 
-
 func Update_latest(res http.ResponseWriter, req *http.Request){
-
     jsonint, _ := strconv.Atoi(req.URL.Query().Get("latest"))
-
     if (jsonint != 0){
-
         gLATEST = jsonint
     }
 }
@@ -69,7 +60,6 @@ func Register(w http.ResponseWriter, r *http.Request){
     var user User
 
     var error = ""
-   
     err := json.NewDecoder(r.Body).Decode(&user)
     if err != nil {
         http.Error(w, err.Error(), http.StatusBadRequest)
@@ -85,11 +75,16 @@ func Register(w http.ResponseWriter, r *http.Request){
     } else if (helpers.CheckUsernameExists(user.Username) ){
         error = "The username is already taken"
     } else{
-        var database, _ = sql.Open("sqlite3", databasepath)
+
+        db, err := gorm.Open("sqlite3", databasepath)
+        if err != nil {
+            panic("failed to connect database")
+        }
+        defer db.Close()
+        
         gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email)
-		statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash, image_url) values (?, ?, ?, ?)")
-        statement.Exec(user.Username,user.Email,user.Pwd,gravatar_url )
-        database.Close()
+        db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: user.Pwd, Image_url: gravatar_url})
+
     }
 
     if (!helpers.IsEmpty(error)){
@@ -110,19 +105,23 @@ type Post struct {
 
 func Messages(w http.ResponseWriter, r *http.Request){
     Update_latest(w,r)
-   Not_req_from_simulator(w,r)
+    Not_req_from_simulator(w,r)
 
-
-    var database, _ = gorm.Open("sqlite3", databasepath)
-    //rows, _ := database.Prepare("SELECT m.text, m.pub_date, u.username FROM message m, user u WHERE m.flagged = 0 AND m.author_id = u.user_id ORDER BY m.pub_date DESC LIMIT ?")
-    rows, _ := database.Raw("SELECT m.text, m.pub_date, u.username FROM message m, user u WHERE m.flagged = 0 AND m.author_id = u.user_id ORDER BY m.pub_date DESC").Rows() 
     //no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-    //rows, _ := query.Query(no)
-    database.Close()
+    db, err := gorm.Open("sqlite3", databasepath)
+        if err != nil {
+            panic("failed to connect database")
+        }
+    defer db.Close()
 
-
+  
     var post Post
     var postSlice []Post
+
+    rows, _ := db.Table("messages").Select("text, pub_date, users.username").Joins("join users on users.user_id = messages.author_id").Rows()
+    
+
+
 
     for rows.Next() {
         rows.Scan(&post.Text, &post.Date, &post.Username)
@@ -132,7 +131,7 @@ func Messages(w http.ResponseWriter, r *http.Request){
     }
 
     w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(postSlice)
+    json.NewEncoder(w).Encode(db.Limit(3).Find(&structs.Messages))
     
 
 }

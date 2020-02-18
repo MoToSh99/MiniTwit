@@ -10,6 +10,7 @@ import (
     _ "github.com/jinzhu/gorm/dialects/sqlite"
 	api "./api"
 	handler "./handlers"
+	structs "./structs"
 )
 
 
@@ -19,32 +20,15 @@ func init() {
 
 var databasepath = "/tmp/minitwit.db"
 
-type user struct  {
-	user_id int `gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
-	username string `gorm:"not null"`
-	email string `gorm:"not null"`
-	pw_hash string `gorm:"not null"`
-	image_url string
-}
-
-type follower struct  {
-	who_id int`gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
-	whom_id int
-}
-
-type message struct  {
-	message_id int`gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
-	author_id int `gorm:"not null"`
-	text string `gorm:"not null"`
-	pub_date int
-	flagged int
-}
-
 func main() {
+	db, err := gorm.Open("sqlite3", databasepath)
+	
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
 
-	var database, _ = gorm.Open("sqlite3", databasepath)
-
-	database.AutoMigrate(&user{}, &follower{}, &message{})
+	db.AutoMigrate(&structs.User{}, &structs.Follower{}, &structs.Message{})
 
 	router := mux.NewRouter()
 
