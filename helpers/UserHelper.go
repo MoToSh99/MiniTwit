@@ -10,6 +10,7 @@ import (
 	cookies "../cookies"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	structs "../structs"
 )
 
 var databasepath = "/tmp/minitwit.db"
@@ -39,12 +40,12 @@ func GetUserID(username string) int {
 	}
 	defer db.Close()
 
-	type Output struct {
-		Id int
-	}
-	var output []Output
-	db.Table("users").Select("user_id").Where("username = ?", username).Scan(&output)
-	return output[0].Id
+	
+	user := structs.User{}
+
+	db.Where("username = ?", username).First(&user)
+
+	return user.User_id
 
 }
 
@@ -161,11 +162,11 @@ func GetUsernameFromID(id int) string {
 	}
 	defer db.Close()
 
-	var user []User
+	user := structs.User{}
 
-	db.Table("users").Select("username").Where("user_id = ?", id).Scan(&user)
+	db.Where("user_id = ?", id).First(&user)
 
-	return user[0].username
+	return user.Username
 
 }
 

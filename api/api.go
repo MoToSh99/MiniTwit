@@ -10,8 +10,10 @@ import (
 	helpers "../helpers"
 	structs "../structs"
 	"github.com/gorilla/mux"
+	
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/Jeffail/gabs"
 )
 
 var databasepath = "/tmp/minitwit.db"
@@ -96,7 +98,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 type Post struct {
 	Text     string `json:"content"`
 	Pub_date string `json:"pub_date"`
-	Username string `json:"username"`
+	Username string `json:"user"`
 }
 
 func Messages(w http.ResponseWriter, r *http.Request) {
@@ -194,21 +196,19 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Follows_username) {
 		follows_username := follow.Follows_username
+
 		if !helpers.CheckUsernameExists(follows_username) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		if !helpers.CheckUsernameExists(vars[follows_username]) {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
+
 		db, err := gorm.Open("sqlite3", databasepath)
 		if err != nil {
 			panic("failed to connect database")
 		}
 		defer db.Close()
 
-		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(vars[follows_username])})
+		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
 	} else if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Unfollow_username) {
 		unfollows_username := follow.Unfollow_username
@@ -216,7 +216,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		if !helpers.CheckUsernameExists(vars[unfollows_username]) {
+		if !helpers.CheckUsernameExists(unfollows_username) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -226,7 +226,8 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		}
 		defer db.Close()
 
-		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(vars[unfollows_username])).Delete("followers")
+		follow := structs.Follower{}
+		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
 	} else if r.Method == http.MethodGet {
 		db, err := gorm.Open("sqlite3", databasepath)
@@ -236,11 +237,20 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		}
 		defer db.Close()
 
-		var userSlice []User
+		userSlice := []structs.Follower{}
 
-		db.Table("users").Limit(no).Select("users.username").Joins("INNER JOIN follower ON follower.whom_id = users.user_id").Where("follower.who_id = ?", vars["username"]).Scan(&userSlice)
+		db.Limit(no).Where("who_id = ?", helpers.GetUserID(vars["username"])).Find(&userSlice)
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(userSlice)
+        jsonObj := gabs.New()
+        jsonObj.Array("follows")
+        for _, v := range userSlice {
+            jsonObj.ArrayAppend(helpers.GetUsernameFromID(v.Whom_id), "follows")
+        }
+
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w,jsonObj.StringIndent("", "  "))
+		
+
 	}
 }
