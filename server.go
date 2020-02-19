@@ -2,13 +2,15 @@ package main
 
 import (
 	"github.com/gorilla/mux"
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	_ "github.com/mattn/go-sqlite3"
+	"github.com/jinzhu/gorm"
+    _ "github.com/jinzhu/gorm/dialects/sqlite"
 	api "./api"
 	handler "./handlers"
+	structs "./structs"
 )
 
 
@@ -19,17 +21,19 @@ func init() {
 var databasepath = "/tmp/minitwit.db"
 
 func main() {
+	db, err := gorm.Open("sqlite3", databasepath)
+	
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
 
-	var database, _ = sql.Open("sqlite3", databasepath)
-	statement, _ := database.Prepare("create table if not exists user (user_id integer primary key autoincrement,username string not null,email string not null,pw_hash string not null,image_url string);")
-	statement.Exec()
-	statement2, _ := database.Prepare("create table if not exists follower ( who_id integer, whom_id integer);")
-	statement2.Exec()
-	statement3, _ := database.Prepare("create table if not exists message (message_id integer primary key autoincrement,author_id integer not null,text string not null,pub_date integer,flagged integer);")
-	statement3.Exec()
-	database.Close()
+	db.AutoMigrate(&structs.User{}, &structs.Follower{}, &structs.Message{})
 
 	router := mux.NewRouter()
+
+
+	router.HandleFunc("/favicon.ico", faviconHandler)
 
 	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	router.HandleFunc("/", handler.PublicTimelineRoute).Methods("GET")
@@ -60,7 +64,7 @@ func main() {
 	
 
 	apiRoute := mux.NewRouter()
-	apiRoute.HandleFunc("/test", api.Test)
+	//apiRoute.HandleFunc("/test", api.Test)
 	apiRoute.HandleFunc("/latest", api.Get_latest)
 	apiRoute.HandleFunc("/register", api.Register).Methods("POST")
 	apiRoute.HandleFunc("/msgs", api.Messages)
@@ -69,7 +73,8 @@ func main() {
 
 
 
-	port := 4999
+
+	port := 5000
 	log.Printf("Server starting on port %v\n", port)
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router))}()
 
@@ -80,4 +85,7 @@ func main() {
     select {}
 }
 
+func faviconHandler(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "/public/favicon.ico")
+}
 

@@ -4,11 +4,43 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"fmt"
-	"database/sql"
 	helper "../helpers"
 	cookies "../cookies"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	structs "../structs"
 )
+type Post struct {
+	Username string
+	PostMessageid int
+	AuthorId int 
+	Text string
+	Date string
+	Flag int
+	Image string
+}
 
+
+type User struct  {
+	user_id int
+	username string
+	email string
+	pw_hash string
+	image_url string
+  }
+
+  type follower struct  {
+	who_id int
+	whom_id int
+  }
+  
+  type message struct  {
+	message_id int
+	author_id int
+	text string 
+	pub_date string
+	flagged int
+  }
 
 var databasepath = "/tmp/minitwit.db"
 
@@ -19,11 +51,11 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = sql.Open("sqlite3", databasepath)
-	statement, _ := database.Prepare("insert into follower (who_id, whom_id) values (?, ?)")
-	statement.Exec(helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"]))
-	statement.Close()
-	database.Close()
+	var database, _ = gorm.Open("sqlite3", databasepath)
+
+	follow := structs.Follower{Who_id: helper.GetUserID(helper.GetUserName(req)), Whom_id: helper.GetUserID(vars["username"])}
+	database.NewRecord(follow)
+	database.Create(&follow)
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
@@ -34,11 +66,16 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = sql.Open("sqlite3", databasepath)
-	statement, _ := database.Prepare("delete from follower where who_id=? and whom_id=?")
-	statement.Exec(helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"]))
-	statement.Close()
-	database.Close()
+	db, err := gorm.Open("sqlite3", databasepath)
+		if err != nil {
+			panic("failed to connect database")
+		}
+		defer db.Close()
+
+	follow := structs.Follower{}
+	db.Where("who_id = ? AND whom_id = ?", helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"])).Delete(follow)
+
+
 
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
@@ -56,21 +93,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
     _pwd = !helper.IsEmpty(pwd)
  
     if _uName && _email && _pwd {
-
 		if (!helper.CheckUsernameExists(uName)){
-		
-
-			var database, _ = sql.Open("sqlite3", databasepath)
+			var database, _ = gorm.Open("sqlite3", databasepath)
 			gravatar_url := "http://www.gravatar.com/avatar/" + helper.GetGravatarHash(email)
-			statement, _ := database.Prepare("INSERT INTO user (username, email, pw_hash, image_url) values (?, ?, ?, ?)")
-			statement.Exec(uName,email,pwd,gravatar_url)
+		
+			user := structs.User{Username: uName, Email: email, Pw_hash: pwd, Image_url: gravatar_url}
+			database.NewRecord(user)
+			database.Create(&user)
 			database.Close()
 
-			fmt.Fprintln(w, "Username for Register : ", uName)
-			fmt.Fprintln(w, "Email for Register : ", email)
-
+			cookies.SetCookie(uName, w)
+			redirectTarget := "/personaltimeline"
+			http.Redirect(w, r, redirectTarget, 302)
 		} else {
-			fmt.Fprintln(w, "User alrady exits")
+			fmt.Fprintln(w, "User already exits")
 		}
 
     } else {
@@ -103,25 +139,19 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
 
 func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
- 
+
     text := req.FormValue("text")
- 
 	_text := false
-	
 	_text = !helper.IsEmpty(text) 
 
-
- 
     if _text {
-
-		var database, _ = sql.Open("sqlite3", databasepath)
-		statement, _ := database.Prepare("INSERT INTO message (author_id, text, pub_date,flagged) values (?, ?, ?, ?)")
-		statement.Exec(helper.GetUserID(helper.GetUserName(req)),text,helper.GetCurrentTime(),0)
-		statement.Close()
+		var database, _ = gorm.Open("sqlite3", databasepath)
+		message := structs.Message{Author_id:helper.GetUserID(helper.GetUserName(req)),Text:text,Pub_date:helper.GetCurrentTime(),Flagged:0}
+		database.NewRecord(message)
+		database.Create(&message)
 		database.Close()
 
-	} else {
-		
+	} else {	
 		fmt.Fprintln(res, "Error")
 	}
 

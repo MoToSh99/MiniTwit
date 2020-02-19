@@ -1,62 +1,66 @@
 package helpers
 
 import (
-	"database/sql"
-	"fmt"
-	"strings"
-	"io"
-	"encoding/hex"
 	"crypto/md5"
+	"encoding/hex"
+	"io"
 	"net/http"
+	"strings"
+
 	cookies "../cookies"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	structs "../structs"
 )
 
-
 var databasepath = "/tmp/minitwit.db"
-var database, _ = sql.Open("sqlite3", databasepath)
 
+type Post struct {
+	Username      string
+	PostMessageid int
+	AuthorId      int
+	Text          string
+	Date          string
+	Flag          int
+	Image         string
+}
 
-func GetUserID(username string) int{
-	var output int
-	// Prepare your query
-	query, err := database.Prepare("SELECT user_id FROM user WHERE username = ?")
-
+func GetUserID(username string) int {
+	db, err := gorm.Open("sqlite3", databasepath)
 	if err != nil {
-		fmt.Printf("%s", err)
+		panic("failed to connect database")
 	}
-	defer query.Close()
+	defer db.Close()
 
-	err = query.QueryRow(username).Scan(&output)
+	
+	user := structs.User{}
 
-	return output
+	db.Where("username = ?", username).First(&user)
+
+	return user.User_id
 
 }
 
 func CheckUsernameExists(username string) bool {
-	var output bool
-
-	// Prepare your query
-	query, err := database.Prepare("SELECT user_id FROM user WHERE username= ?")
-
+	db, err := gorm.Open("sqlite3", databasepath)
 	if err != nil {
-		fmt.Printf("%s", err)
+		panic("failed to connect database")
 	}
+	defer db.Close()
 
-	defer query.Close()
-
-	err = query.QueryRow(username).Scan(&output)
-
+	type Output struct {
+		Id int
+	}
+	var output []Output
+	db.Table("users").Select("user_id").Where("username = ?", username).Scan(&output)
+	var rtn bool
 	// Catch errors
-	switch {
-	case err == sql.ErrNoRows:
-			output = false
-	case err != nil:
-			output = true
-	default:
-			output = true
+	if len(output) < 1 {
+		rtn = false
+	} else {
+		rtn = true
 	}
-
-	return output
+	return rtn
 
 }
 
@@ -70,185 +74,147 @@ func GetGravatarHash(g_email string) string {
 	return finalString
 }
 
-type Post struct {
-	Username string
-	PostMessageid int
-	AuthorId int 
-	Text string
-	Date string
-	Flag int
-	Image string
-}
-
-
-func GetAllPosts()[]Post{
-	var post Post
-	sqlStatement := `SELECT u.username, m.message_id, m.text, m.pub_date, u.image_url FROM message m join user u ON m.author_id = u.user_id order by m.pub_date desc`
-	rows, err := database.Query(sqlStatement)
+func GetAllPosts() []Post {
+	db, err := gorm.Open("sqlite3", databasepath)
 	if err != nil {
-		panic(err)
-	   }
-	
-	defer rows.Close()
+		panic("failed to connect database")
+	}
+	defer db.Close()
 
+	messages := []structs.Message{}
+
+	db.Order("pub_date desc").Where("flagged = ?",0).Find(&messages)
 
 	var postSlice []Post
-	for rows.Next(){
-		rows.Scan(&post.Username, &post.PostMessageid, &post.Text, &post.Date, &post.Image)
+	for _, m := range messages {
+		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
 		postSlice = append(postSlice, post)
 	}
 
-	
 	return postSlice;
-	
-
 }
 
 func GetUserName(request *http.Request) (userName string) {
-    if cookie, err := request.Cookie("cookie"); err == nil {
-        cookieValue := make(map[string]string)
-        if err = cookies.CookieHandler.Decode("cookie", cookie.Value, &cookieValue); err == nil {
-            userName = cookieValue["name"]
-        }
-    }
-    return userName
+	if cookie, err := request.Cookie("cookie"); err == nil {
+		cookieValue := make(map[string]string)
+		if err = cookies.CookieHandler.Decode("cookie", cookie.Value, &cookieValue); err == nil {
+			userName = cookieValue["name"]
+		}
+	}
+	return userName
 }
 
-
-
 func ValidUser(username string, psw string) bool {
-	var output bool
-
-
-	var database, _ = sql.Open("sqlite3", databasepath)
-	// Prepare your query
-	query, err := database.Prepare("SELECT user_id FROM user WHERE username = ? AND pw_hash = ?")
-
-	
+	db, err := gorm.Open("sqlite3", databasepath)
 	if err != nil {
-		fmt.Printf("%s", err)
+		panic("failed to connect database")
 	}
+	defer db.Close()
 
-	defer query.Close()
-
-	err = query.QueryRow(username, psw).Scan(&output)
-
+	type Output struct {
+		Id int
+	}
+	var output []Output
+	db.Table("users").Select("user_id").Where("username = ? AND pw_hash = ?", username, psw).Scan(&output)
+	var rtn bool
 	// Catch errors
-	switch {
-	case err == sql.ErrNoRows:
-			output = false
-	case err != nil:
-			output = true
-	default:
-			output = true
+	if len(output) < 1 {
+		rtn = false
+	} else {
+		rtn = true
 	}
-
-	database.Close()
-
-	return output
-
+	return rtn
 }
 
 func UserIsValid(uName, pwd string) bool {
-    _isValid :=  false
- 
-    if ValidUser(uName,pwd) {
-        _isValid = true
-    } else {
-        _isValid = false
-    }
- 
-    return _isValid
-}
+	_isValid := false
 
-func GetUserPosts(username string)[]Post{
-	var post Post
-
-
-	var database, _ = sql.Open("sqlite3", databasepath)
-	query, err := database.Prepare("select m.*, u.image_url  from message m JOIN user u on m.author_id = u.user_id where m.flagged = 0 and m.author_id = u.user_id and (u.user_id = ? or	u.user_id in (select whom_id from follower where who_id = ?)) order by m.pub_date desc")
-
-	if err != nil {
-		fmt.Printf("%s", err)
+	if ValidUser(uName, pwd) {
+		_isValid = true
+	} else {
+		_isValid = false
 	}
 
+	return _isValid
+}
 
-	rows, err := query.Query(GetUserID(username),GetUserID(username))
-	defer rows.Close()
+func GetUserPosts(username string) []Post {
+	db, err := gorm.Open("sqlite3", databasepath)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
+
+	messages := []structs.Message{}
 	
+	db.Order("pub_date desc").Where("flagged = ? AND author_id = ? ",0, GetUserID(username)).Or("author_id in (select whom_id from followers where who_id = ?)", GetUserID(username)).Find(&messages)
+
 	var postSlice []Post
-	for rows.Next(){
-		rows.Scan(&post.PostMessageid, &post.AuthorId, &post.Text, &post.Date, &post.Flag, &post.Image)
-		post.Username = GetUsernameFromID(post.AuthorId)
+	for _, m := range messages {
+		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
 		postSlice = append(postSlice, post)
 	}
 
-	database.Close()
-	
 	return postSlice;
 
 }
 
-func GetUsernameFromID(id int) string{
-	var output string
 
-	var database, _ = sql.Open("sqlite3", databasepath)
-	query, err := database.Prepare("SELECT username FROM user WHERE user_id = ?")
-	
 
+func GetUsernameFromID(id int) string {
+	db, err := gorm.Open("sqlite3", databasepath)
 	if err != nil {
-		fmt.Printf("%s", err)
+		panic("failed to connect database")
 	}
-	defer query.Close()
+	defer db.Close()
 
-	err = query.QueryRow(id).Scan(&output)
+	user := structs.User{}
 
-	database.Close()
+	db.Where("user_id = ?", id).First(&user)
 
-	return output
+	return user.Username
 
 }
 
+func GetImageFromID(id int) string {
+	db, err := gorm.Open("sqlite3", databasepath)
+	if err != nil {
+		panic("failed to connect database")
+	}
+	defer db.Close()
 
+	user := structs.User{}
 
-func PostsAmount(posts []Post) bool{
+	db.Where("user_id = ?", id).First(&user)
 
-	if (len(posts) > 0){
+	return user.Image_url
+
+}
+
+func PostsAmount(posts []Post) bool {
+
+	if len(posts) > 0 {
 		return true
 	} else {
 		return false
 	}
 }
 
-
-
-
-func CheckIfFollowed(who string, whom string) bool{
-	var output bool
-
-	// Prepare your query
-	var database, _ = sql.Open("sqlite3", databasepath)
-	query, err := database.Prepare("select * from follower where follower.who_id = ? and follower.whom_id = ?")
-	
-
+func CheckIfFollowed(who string, whom string) bool {
+	db, err := gorm.Open("sqlite3", databasepath)
 	if err != nil {
-		fmt.Printf("%s", err)
+		panic("failed to connect database")
+	}
+	defer db.Close()	
+	output := []structs.Follower{}
+	db.Where("who_id = ? AND whom_id = ?", GetUserID(whom), GetUserID(who)).Find(&output)
+
+	var rtn bool
+	if len(output) < 1 {
+		rtn = false
+	} else {
+		rtn = true
 	}
 
-	defer query.Close()
-
-	err = query.QueryRow(GetUserID(whom), GetUserID(who)).Scan(&output)
-
-	// Catch errors
-	switch {
-	case err == sql.ErrNoRows:
-			output = false
-	case err != nil:
-			output = true
-	default:
-			output = true
-	}
-	database.Close()
-
-	return output
+	return rtn
 }
