@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	_ "github.com/mattn/go-sqlite3"
-	"github.com/jinzhu/gorm"
     _ "github.com/jinzhu/gorm/dialects/mssql"
 	api "./api"
 	handler "./handlers"
@@ -25,16 +24,8 @@ func init() {
 
 
 func main() {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db := helpers.GetDB()
 	
-
-	if err != nil {
-		log.Fatal(err.Error())
-	}
-
-	if err != nil {
-		panic("failed to connect database")
-	}
 	defer db.Close()
 
 	db.AutoMigrate(&structs.User{}, &structs.Follower{}, &structs.Message{})

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strings"
 	cookies "../cookies"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
 	"database/sql"
@@ -26,10 +25,7 @@ type Post struct {
 }
 
 func GetUserID(username string) int {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()
 
 	
@@ -42,10 +38,7 @@ func GetUserID(username string) int {
 }
 
 func CheckUsernameExists(username string) bool {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()
 
 	type Output struct {
@@ -75,10 +68,7 @@ func GetGravatarHash(g_email string) string {
 }
 
 func GetAllPosts() []Post {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()
 
 	messages := []structs.Message{}
@@ -105,10 +95,7 @@ func GetUserName(request *http.Request) (userName string) {
 }
 
 func ValidUser(username string, psw string) bool {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()
 
 	user := structs.User{}
@@ -137,10 +124,7 @@ func UserIsValid(uName, pwd string) bool {
 }
 
 func GetUserPosts(username string) []Post {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()
 
 	messages := []structs.Message{}
@@ -160,10 +144,7 @@ func GetUserPosts(username string) []Post {
 
 
 func GetUsernameFromID(id int) string {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()
 
 	user := structs.User{}
@@ -175,10 +156,7 @@ func GetUsernameFromID(id int) string {
 }
 
 func GetImageFromID(id int) string {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()
 
 	user := structs.User{}
@@ -199,10 +177,7 @@ func PostsAmount(posts []Post) bool {
 }
 
 func CheckIfFollowed(who string, whom string) bool {
-	db, err := gorm.Open("mssql", GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := GetDB()
 	defer db.Close()	
 	output := []structs.Follower{}
 	db.Where("who_id = ? AND whom_id = ?", GetUserID(whom), GetUserID(who)).Find(&output)

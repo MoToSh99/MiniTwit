@@ -11,8 +11,6 @@ import (
 	helpers "../helpers"
 	structs "../structs"
 	"github.com/gorilla/mux"
-	
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/Jeffail/gabs"
 )
@@ -78,10 +76,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 
-		db, err := gorm.Open("mssql", helpers.GetConnString())
-		if err != nil {
-			panic("failed to connect database")
-		}
+		db := helpers.GetDB()
 		defer db.Close()
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email)
@@ -108,10 +103,7 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 	Not_req_from_simulator(w, r)
 
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-	db, err := gorm.Open("mssql", helpers.GetConnString())
-	if err != nil {
-		panic("failed to connect database")
-	}
+	db := helpers.GetDB()
 	defer db.Close()
 
 	var postSlice []Post
@@ -134,11 +126,9 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		db, err := gorm.Open("mssql", helpers.GetConnString())
+		db := helpers.GetDB()
 		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-		if err != nil {
-			panic("failed to connect database")
-		}
+
 		defer db.Close()
 
 		var postSlice []Post
@@ -158,10 +148,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db, err := gorm.Open("mssql", helpers.GetConnString())
-		if err != nil {
-			panic("failed to connect database")
-		}
+		db := helpers.GetDB()
 		defer db.Close()
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
@@ -180,7 +167,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	Update_latest(w, r)
 	Not_req_from_simulator(w, r)
 	vars := mux.Vars(r)
-
+	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 	var follow FollowUser
 
 	if r.Body != http.NoBody {
@@ -204,10 +191,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db, err := gorm.Open("mssql", helpers.GetConnString())
-		if err != nil {
-			panic("failed to connect database")
-		}
+		db := helpers.GetDB()
 		defer db.Close()
 
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
@@ -222,26 +206,19 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		db, err := gorm.Open("mssql", helpers.GetConnString())
-		if err != nil {
-			panic("failed to connect database")
-		}
+		db := helpers.GetDB()
 		defer db.Close()
 
 		follow := structs.Follower{}
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
 	} else if r.Method == http.MethodGet {
-		db, err := gorm.Open("mssql", helpers.GetConnString())
-		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-		if err != nil {
-			panic("failed to connect database")
-		}
+		db := helpers.GetDB()
 		defer db.Close()
 
 		userSlice := []structs.Follower{}
 
-		db.Limit(no).Where("who_id = ?", helpers.GetUserID(vars["username"])).Find(&userSlice)
+		db.Limit(no).Where("who_id = ?", helpers.GetUserID(vars["username"])).Order("whom_id").Find(&userSlice)
 
         jsonObj := gabs.New()
         jsonObj.Array("follows")

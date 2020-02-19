@@ -4,6 +4,9 @@ import (
     "time"
     "fmt"
     "golang.org/x/crypto/bcrypt"
+    "github.com/jinzhu/gorm"
+    _ "github.com/jinzhu/gorm/dialects/mssql"
+    
 
 )
 
@@ -32,6 +35,27 @@ func GetConnString() string {
     var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
             server, user, password, port, database)
     return connString
+}
+
+
+func GetDB() *gorm.DB {
+    
+    var server = "minitwitserver.database.windows.net"
+    var port = 1433
+    var user = "Minitwit"
+    var password = "ITU2020!"
+    var database = "minitwitdb"
+    
+    var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+            server, user, password, port, database)
+
+    
+    db, err := gorm.Open("mssql", connString)
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+    return db
 }
 
 func HashPassword(password string) (string) {

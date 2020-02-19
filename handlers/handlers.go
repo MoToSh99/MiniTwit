@@ -7,9 +7,8 @@ import (
 	
 	"fmt"
 
-	helper "../helpers"
+	helpers "../helpers"
 	cookies "../cookies"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
 )
@@ -51,35 +50,32 @@ type User struct  {
 
 
 func UserFollowHandler(res http.ResponseWriter, req *http.Request){
-	if (helper.IsEmpty(helper.GetUserName(req))){
+	if (helpers.IsEmpty(helpers.GetUserName(req))){
 		res.WriteHeader(http.StatusUnauthorized)
 	}
 	
 	vars := mux.Vars(req)
 
-	var database, _ = gorm.Open("mssql", helper.GetConnString())
+	db := helpers.GetDB()
 
-	follow := structs.Follower{Who_id: helper.GetUserID(helper.GetUserName(req)), Whom_id: helper.GetUserID(vars["username"])}
-	database.NewRecord(follow)
-	database.Create(&follow)
+	follow := structs.Follower{Who_id: helpers.GetUserID(helpers.GetUserName(req)), Whom_id: helpers.GetUserID(vars["username"])}
+	db.NewRecord(follow)
+	db.Create(&follow)
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
 func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
-	if (helper.IsEmpty(helper.GetUserName(req))){
+	if (helpers.IsEmpty(helpers.GetUserName(req))){
 		res.WriteHeader(http.StatusUnauthorized)
 	}
 	
 	vars := mux.Vars(req)
 
-	db, err := gorm.Open("mssql", helper.GetConnString())
-		if err != nil {
-			panic("failed to connect database")
-		}
-		defer db.Close()
+	db := helpers.GetDB()
+	defer db.Close()
 
 	follow := structs.Follower{}
-	db.Where("who_id = ? AND whom_id = ?", helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"])).Delete(follow)
+	db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(helpers.GetUserName(req)),helpers.GetUserID(vars["username"])).Delete(follow)
 
 
 
@@ -94,19 +90,19 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
     pwd := r.FormValue("pwd")
  
     _uName, _email, _pwd := false, false, false
-    _uName = !helper.IsEmpty(uName)
-    _email = !helper.IsEmpty(email)
-    _pwd = !helper.IsEmpty(pwd)
+    _uName = !helpers.IsEmpty(uName)
+    _email = !helpers.IsEmpty(email)
+    _pwd = !helpers.IsEmpty(pwd)
  
     if _uName && _email && _pwd {
-		if (!helper.CheckUsernameExists(uName)){
-			var database, _ = gorm.Open("mssql", helper.GetConnString())
-			gravatar_url := "http://www.gravatar.com/avatar/" + helper.GetGravatarHash(email)
+		if (!helpers.CheckUsernameExists(uName)){
+			db := helpers.GetDB()
+			gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(email)
 		
-			user := structs.User{Username: uName, Email: email, Pw_hash: helper.HashPassword(pwd), Image_url: gravatar_url}
-			database.NewRecord(user)
-			database.Create(&user)
-			database.Close()
+			user := structs.User{Username: uName, Email: email, Pw_hash: helpers.HashPassword(pwd), Image_url: gravatar_url}
+			db.NewRecord(user)
+			db.Create(&user)
+			db.Close()
 
 			cookies.SetCookie(uName, w)
 			redirectTarget := "/personaltimeline"
@@ -126,12 +122,12 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
     pass := request.FormValue("password")
 	redirectTarget := "/"
 	_Name, _pwd := false, false
-	_Name = !helper.IsEmpty(name)
-	_pwd = !helper.IsEmpty(pass)
+	_Name = !helpers.IsEmpty(name)
+	_pwd = !helpers.IsEmpty(pass)
 
     if _Name && _pwd {
         // Database check for user data!
-        _userIsValid := helper.UserIsValid(name, pass)
+        _userIsValid := helpers.UserIsValid(name, pass)
 		
         if _userIsValid {
             cookies.SetCookie(name, response)
@@ -148,14 +144,14 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 
     text := req.FormValue("text")
 	_text := false
-	_text = !helper.IsEmpty(text) 
+	_text = !helpers.IsEmpty(text) 
 
     if _text {
-		var database, _ = gorm.Open("mssql", helper.GetConnString())
-		message := structs.Message{Author_id:helper.GetUserID(helper.GetUserName(req)),Text:text,Pub_date:helper.GetCurrentTime(),Flagged:0}
-		database.NewRecord(message)
-		database.Create(&message)
-		database.Close()
+		db := helpers.GetDB()
+		message := structs.Message{Author_id:helpers.GetUserID(helpers.GetUserName(req)),Text:text,Pub_date:helpers.GetCurrentTime(),Flagged:0}
+		db.NewRecord(message)
+		db.Create(&message)
+		db.Close()
 
 	} else {	
 		fmt.Fprintln(res, "Error")
