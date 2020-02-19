@@ -19,7 +19,7 @@ type User struct {
 }
 
 type Follower struct {
-	Who_id  int `gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
+	Who_id  int 
 	Whom_id int
 }
 
