@@ -2,27 +2,36 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/jinzhu/gorm"
-    _ "github.com/jinzhu/gorm/dialects/sqlite"
+    _ "github.com/jinzhu/gorm/dialects/mssql"
 	api "./api"
 	handler "./handlers"
 	structs "./structs"
+	helpers "./helpers"
 )
 
+
+var db *sql.DB
 
 func init() {
 	handler.LoadTemplates()
 }
 
-var databasepath = "/tmp/minitwit.db"
+
 
 func main() {
-	db, err := gorm.Open("sqlite3", databasepath)
+	db, err := gorm.Open("mssql", helpers.GetConnString())
 	
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	if err != nil {
 		panic("failed to connect database")
 	}

@@ -8,6 +8,7 @@ RUN go get github.com/jinzhu/gorm
 RUN go get github.com/jinzhu/gorm/dialects/sqlite
 RUN go get github.com/jinzhu/inflection
 RUN go get golang.org/x/crypto/bcrypt
+RUn go get github.com/jinzhu/gorm/dialects/mssql
 
 
 

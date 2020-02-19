@@ -3,13 +3,19 @@ package handlers
 import (
 	"net/http"
 	"github.com/gorilla/mux"
+	"database/sql"
+	
 	"fmt"
+
 	helper "../helpers"
 	cookies "../cookies"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
 )
+
+var db *sql.DB
+
 type Post struct {
 	Username string
 	PostMessageid int
@@ -33,7 +39,7 @@ type User struct  {
 	who_id int
 	whom_id int
   }
-  
+
   type message struct  {
 	message_id int
 	author_id int
@@ -42,7 +48,7 @@ type User struct  {
 	flagged int
   }
 
-var databasepath = "/tmp/minitwit.db"
+
 
 func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	if (helper.IsEmpty(helper.GetUserName(req))){
@@ -51,7 +57,7 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = gorm.Open("sqlite3", databasepath)
+	var database, _ = gorm.Open("mssql", helper.GetConnString())
 
 	follow := structs.Follower{Who_id: helper.GetUserID(helper.GetUserName(req)), Whom_id: helper.GetUserID(vars["username"])}
 	database.NewRecord(follow)
@@ -66,7 +72,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	db, err := gorm.Open("sqlite3", databasepath)
+	db, err := gorm.Open("mssql", helper.GetConnString())
 		if err != nil {
 			panic("failed to connect database")
 		}
@@ -94,7 +100,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
  
     if _uName && _email && _pwd {
 		if (!helper.CheckUsernameExists(uName)){
-			var database, _ = gorm.Open("sqlite3", databasepath)
+			var database, _ = gorm.Open("mssql", helper.GetConnString())
 			gravatar_url := "http://www.gravatar.com/avatar/" + helper.GetGravatarHash(email)
 		
 			user := structs.User{Username: uName, Email: email, Pw_hash: helper.HashPassword(pwd), Image_url: gravatar_url}
@@ -145,7 +151,7 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 	_text = !helper.IsEmpty(text) 
 
     if _text {
-		var database, _ = gorm.Open("sqlite3", databasepath)
+		var database, _ = gorm.Open("mssql", helper.GetConnString())
 		message := structs.Message{Author_id:helper.GetUserID(helper.GetUserName(req)),Text:text,Pub_date:helper.GetCurrentTime(),Flagged:0}
 		database.NewRecord(message)
 		database.Create(&message)
