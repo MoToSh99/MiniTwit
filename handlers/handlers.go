@@ -45,15 +45,7 @@ type User struct  {
 	flagged int
   }
 
-  var db *sql.DB
-  var server = "minitwitserver.database.windows.net"
-  var port = 1433
-  var user = "Minitwit"
-  var password = "ITU2020!"
-  var database = "minitwitdb"
-  
-  var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		  server, user, password, port, database)
+
 
 func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	if (helper.IsEmpty(helper.GetUserName(req))){
@@ -62,7 +54,7 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = gorm.Open("mssql", connString)
+	var database, _ = gorm.Open("mssql", helper.GetConnString())
 
 	follow := structs.Follower{Who_id: helper.GetUserID(helper.GetUserName(req)), Whom_id: helper.GetUserID(vars["username"])}
 	database.NewRecord(follow)
@@ -77,7 +69,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	db, err := gorm.Open("mssql", connString)
+	db, err := gorm.Open("mssql", helper.GetConnString())
 		if err != nil {
 			panic("failed to connect database")
 		}
@@ -105,7 +97,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
  
     if _uName && _email && _pwd {
 		if (!helper.CheckUsernameExists(uName)){
-			var database, _ = gorm.Open("mssql", connString)
+			var database, _ = gorm.Open("mssql", helper.GetConnString())
 			gravatar_url := "http://www.gravatar.com/avatar/" + helper.GetGravatarHash(email)
 		
 			user := structs.User{Username: uName, Email: email, Pw_hash: pwd, Image_url: gravatar_url}
@@ -156,7 +148,7 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 	_text = !helper.IsEmpty(text) 
 
     if _text {
-		var database, _ = gorm.Open("mssql", connString)
+		var database, _ = gorm.Open("mssql", helper.GetConnString())
 		message := structs.Message{Author_id:helper.GetUserID(helper.GetUserName(req)),Text:text,Pub_date:helper.GetCurrentTime(),Flagged:0}
 		database.NewRecord(message)
 		database.Create(&message)
