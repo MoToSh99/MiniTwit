@@ -13,6 +13,9 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
 )
+
+var db *sql.DB
+
 type Post struct {
 	Username string
 	PostMessageid int

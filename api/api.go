@@ -17,6 +17,7 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
+var db *sql.DB
 
 var gLATEST = 0
 

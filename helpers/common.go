@@ -1,7 +1,8 @@
 package helpers
 
 import (
-	"time"
+    "time"
+    "fmt"
 )
 
 func IsEmpty(data string) bool {
@@ -18,7 +19,7 @@ func GetCurrentTime() string{
 }
 
 func GetConnString() string {
-    var db *sql.DB
+    
     var server = "minitwitserver.database.windows.net"
     var port = 1433
     var user = "Minitwit"

@@ -16,6 +16,8 @@ import (
 )
 
 
+var db *sql.DB
+
 func init() {
 	handler.LoadTemplates()
 }

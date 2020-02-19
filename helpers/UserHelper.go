@@ -11,10 +11,9 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
 	"database/sql"
-	"fmt"
-	helpers "./helpers"
 )
 
+var db *sql.DB
 
 type Post struct {
 	Username      string
@@ -27,7 +26,7 @@ type Post struct {
 }
 
 func GetUserID(username string) int {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -43,7 +42,7 @@ func GetUserID(username string) int {
 }
 
 func CheckUsernameExists(username string) bool {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -76,7 +75,7 @@ func GetGravatarHash(g_email string) string {
 }
 
 func GetAllPosts() []Post {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -106,7 +105,7 @@ func GetUserName(request *http.Request) (userName string) {
 }
 
 func ValidUser(username string, psw string) bool {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -140,7 +139,7 @@ func UserIsValid(uName, pwd string) bool {
 }
 
 func GetUserPosts(username string) []Post {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -163,7 +162,7 @@ func GetUserPosts(username string) []Post {
 
 
 func GetUsernameFromID(id int) string {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -178,7 +177,7 @@ func GetUsernameFromID(id int) string {
 }
 
 func GetImageFromID(id int) string {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -202,7 +201,7 @@ func PostsAmount(posts []Post) bool {
 }
 
 func CheckIfFollowed(who string, whom string) bool {
-	db, err := gorm.Open("mssql", helpers.GetConnString())
+	db, err := gorm.Open("mssql", GetConnString())
 	if err != nil {
 		panic("failed to connect database")
 	}
