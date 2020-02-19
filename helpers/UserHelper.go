@@ -8,10 +8,9 @@ import (
 	"strings"
 	cookies "../cookies"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
 	"database/sql"
-	_ "github.com/denisenkom/go-mssqldb"
 	"fmt"
 
 )

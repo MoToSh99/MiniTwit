@@ -8,7 +8,7 @@ import (
 	"net/http"
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/jinzhu/gorm"
-    _ "github.com/jinzhu/gorm/dialects/sqlite"
+    _ "github.com/jinzhu/gorm/dialects/mssql"
 	api "./api"
 	handler "./handlers"
 	structs "./structs"

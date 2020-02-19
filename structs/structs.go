@@ -11,7 +11,7 @@ type Post struct {
 }
 
 type User struct {
-	User_id   int    `gorm:"PRIMARY_KEY"`
+	User_id   int    `gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
 	Username  string `gorm:"not null"`
 	Email     string `gorm:"not null"`
 	Pw_hash   string `gorm:"not null"`
@@ -24,7 +24,7 @@ type Follower struct {
 }
 
 type Message struct {
-	Message_id int    `gorm:"PRIMARY_KEY"`
+	Message_id int    `gorm:"AUTO_INCREMENT;PRIMARY_KEY"`
 	Author_id  int    `gorm:"not null"`
 	Text       string `gorm:"not null"`
 	Pub_date   string

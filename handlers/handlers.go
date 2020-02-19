@@ -10,7 +10,7 @@ import (
 	helper "../helpers"
 	cookies "../cookies"
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
 )
 type Post struct {
