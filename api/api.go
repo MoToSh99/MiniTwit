@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-
+	_ "github.com/jinzhu/gorm/dialects/mssql"
+	"database/sql"
 	helpers "../helpers"
 	structs "../structs"
 	"github.com/gorilla/mux"
@@ -16,7 +17,15 @@ import (
 	"github.com/Jeffail/gabs"
 )
 
-var databasepath = "/tmp/minitwit.db"
+var db *sql.DB
+var server = "minitwitserver.database.windows.net"
+var port = 1433
+var user = "Minitwit"
+var password = "ITU2020!"
+var database = "minitwitdb"
+
+var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		server, user, password, port, database)
 var gLATEST = 0
 
 type User struct {
@@ -76,7 +85,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 
-		db, err := gorm.Open("sqlite3", databasepath)
+		db, err := gorm.Open("mssql", connString)
 		if err != nil {
 			panic("failed to connect database")
 		}
@@ -106,7 +115,7 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 	Not_req_from_simulator(w, r)
 
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-	db, err := gorm.Open("sqlite3", databasepath)
+	db, err := gorm.Open("mssql", connString)
 	if err != nil {
 		panic("failed to connect database")
 	}
@@ -132,7 +141,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		db, err := gorm.Open("sqlite3", databasepath)
+		db, err := gorm.Open("mssql", connString)
 		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 		if err != nil {
 			panic("failed to connect database")
@@ -156,7 +165,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db, err := gorm.Open("sqlite3", databasepath)
+		db, err := gorm.Open("mssql", connString)
 		if err != nil {
 			panic("failed to connect database")
 		}
@@ -202,7 +211,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db, err := gorm.Open("sqlite3", databasepath)
+		db, err := gorm.Open("mssql", connString)
 		if err != nil {
 			panic("failed to connect database")
 		}
@@ -220,7 +229,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		db, err := gorm.Open("sqlite3", databasepath)
+		db, err := gorm.Open("mssql", connString)
 		if err != nil {
 			panic("failed to connect database")
 		}
@@ -230,7 +239,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
 	} else if r.Method == http.MethodGet {
-		db, err := gorm.Open("sqlite3", databasepath)
+		db, err := gorm.Open("mssql", connString)
 		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 		if err != nil {
 			panic("failed to connect database")
