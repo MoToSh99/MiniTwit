@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/gorilla/mux"
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
@@ -18,11 +19,24 @@ func init() {
 	handler.LoadTemplates()
 }
 
-var databasepath = "/tmp/minitwit.db"
+var db *sql.DB
+var server = "minitwitserver.database.windows.net"
+var port = 1433
+var user = "Minitwit"
+var password = "ITU2020!"
+var database = "minitwitdb"
+
+var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		server, user, password, port, database)
 
 func main() {
-	db, err := gorm.Open("sqlite3", databasepath)
+	db, err := gorm.Open("mssql", connString)
 	
+
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+
 	if err != nil {
 		panic("failed to connect database")
 	}
