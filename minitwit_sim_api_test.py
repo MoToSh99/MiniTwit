@@ -194,3 +194,4 @@ def test_a_unfollows_b():
     # verify that latest was updated
     response = requests.get(f'{BASE_URL}/latest', headers=HEADERS)
     assert response.json()['latest'] == 11
+

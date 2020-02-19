@@ -111,19 +111,17 @@ func ValidUser(username string, psw string) bool {
 	}
 	defer db.Close()
 
-	type Output struct {
-		Id int
-	}
-	var output []Output
-	db.Table("users").Select("user_id").Where("username = ? AND pw_hash = ?", username, psw).Scan(&output)
-	var rtn bool
-	// Catch errors
-	if len(output) < 1 {
-		rtn = false
+	user := structs.User{}
+
+	db.Where("username = ?", username).First(&user)
+
+
+	if (CheckPasswordHash(psw, user.Pw_hash)){
+		return true
 	} else {
-		rtn = true
+		return false
 	}
-	return rtn
+
 }
 
 func UserIsValid(uName, pwd string) bool {

@@ -85,7 +85,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		defer db.Close()
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email)
-		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: user.Pwd, Image_url: gravatar_url})
+		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: helpers.HashPassword(user.Pwd), Image_url: gravatar_url})
 
 	}
 

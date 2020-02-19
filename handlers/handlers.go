@@ -103,7 +103,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			var database, _ = gorm.Open("mssql", helper.GetConnString())
 			gravatar_url := "http://www.gravatar.com/avatar/" + helper.GetGravatarHash(email)
 		
-			user := structs.User{Username: uName, Email: email, Pw_hash: pwd, Image_url: gravatar_url}
+			user := structs.User{Username: uName, Email: email, Pw_hash: helper.HashPassword(pwd), Image_url: gravatar_url}
 			database.NewRecord(user)
 			database.Create(&user)
 			database.Close()
