@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"fmt"
-	"database/sql"
 	helper "../helpers"
 	cookies "../cookies"
 	"github.com/jinzhu/gorm"
@@ -67,11 +66,16 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	
 	vars := mux.Vars(req)
 
-	var database, _ = sql.Open("sqlite3", databasepath)
-	statement, _ := database.Prepare("delete from followers where who_id=? and whom_id=?")
-	statement.Exec(helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"]))
-	statement.Close()
-	database.Close()
+	db, err := gorm.Open("sqlite3", databasepath)
+		if err != nil {
+			panic("failed to connect database")
+		}
+		defer db.Close()
+
+	follow := structs.Follower{}
+	db.Where("who_id = ? AND whom_id = ?", helper.GetUserID(helper.GetUserName(req)),helper.GetUserID(vars["username"])).Delete(follow)
+
+
 
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
