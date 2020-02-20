@@ -5,7 +5,8 @@ import sqlite3
 import requests
 from contextlib import closing
 
-BASE_URL = 'http://127.0.0.1:5001'
+
+BASE_URL = 'http://localhost:5001'
 DATABASE = "/tmp/minitwit.db"
 USERNAME = 'simulator'
 PWD = 'super_safe!'
@@ -36,7 +37,6 @@ def test_latest():
     params = {'latest': 1337}
     response = requests.post(url, data=json.dumps(data),
                              params=params, headers=HEADERS)
-    print(response)
     assert response.ok
 
     # verify that latest was updated
@@ -45,7 +45,6 @@ def test_latest():
     assert response.ok
     assert response.json()['latest'] == 1337
 
-test_latest()
 
 def test_register():
     username = 'a'
