@@ -1,7 +1,7 @@
 version: '3'
 services:
   MiniTwitServer:
-    image: minitwit
+    image: motosh/minitwitimage
     ports:
       - "5001:5001"
       - "5000:5000"
