@@ -25,4 +25,16 @@ jobs:
       run: docker build . --file Dockerfile --tag motosh/minitwitimage:latest
     - name: Push the latest Docker image
       run: docker push motosh/minitwitimage:latest
+    - name: Executing remote  command
+      uses: appleboy/ssh-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        USERNAME: ${{ secrets.USERNAME }}
+        PORT: ${{ secrets.PORT }}
+        KEY: ${{ secrets.SSHKEY }}
+        script: |
+          cd /vagrant
+          docker-compose pull
+          docker-compose up -d
+        
 
