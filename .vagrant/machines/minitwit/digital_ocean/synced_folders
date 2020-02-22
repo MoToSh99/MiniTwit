@@ -1,1 +1,0 @@
-{"rsync":{"/vagrant":{"type":"rsync","guestpath":"/vagrant","hostpath":"/home/motosh/Desktop/minitwitgo/remote_files","disabled":false,"__vagrantfile":true,"owner":"root","group":"root"}}}

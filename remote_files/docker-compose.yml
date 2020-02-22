@@ -1,7 +1,17 @@
-version: '3'
+version: '3.3'
+
+networks:
+  main:
+
 services:
-  MiniTwitServer:
-    image: motosh/minitwitimage
+
+  minitwitimage:
+    image: ${DOCKER_USERNAME}/minitwitimage
+    container_name: minitwit
+    networks:
+      - main
+    depends_on:
+      - itusqlimage
     ports:
-      - "5001:5001"
-      - "5000:5000"
+        - '5000:5000'
+        - '5001:5001'
