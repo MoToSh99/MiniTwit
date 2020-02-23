@@ -32,9 +32,6 @@ jobs:
         USERNAME: ${{ secrets.USERNAME }}
         PORT: ${{ secrets.PORT }}
         KEY: ${{ secrets.SSHKEY }}
-        script: |
-          cd /vagrant
-          docker-compose pull
-          docker-compose up -d
+        script: cd /vagrant
         
 
