@@ -7,7 +7,7 @@ networks:
 services:
 
   minitwitimage:
-    image: ${{ secrets.DOCKERHUB_USERNAME }}/minitwitimage
+    image: $${{ secrets.DOCKERHUB_USERNAME }}/minitwitimage
     container_name: minitwit
     networks:
       - main
