@@ -1,8 +1,17 @@
-version: '3'
+
+version: '3.3'
+
+networks:
+  main:
+
 services:
+
   minitwitimage:
-    image: motosh/minitwitimage
+    image: ${{ secrets.DOCKERHUB_USERNAME }}/minitwitimage
+    container_name: minitwit
+    networks:
+      - main
     ports:
-      - "5001:5001"
-      - "5000:5000"
+        - '5000:5000'
+        - '5001:5001'
 
