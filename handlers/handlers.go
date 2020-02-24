@@ -64,6 +64,9 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
+
+
+
 func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	if (helpers.IsEmpty(helpers.GetUserName(req))){
 		res.WriteHeader(http.StatusUnauthorized)

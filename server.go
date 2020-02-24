@@ -54,7 +54,7 @@ func main() {
 	router.HandleFunc("/signout", handler.LogoutHandler)
 
 	router.HandleFunc("/publictimeline", handler.PublicTimelineRoute).Methods("GET")
-	
+	router.HandleFunc("/publictimeline/more", handler.PublicTimelineLoadMore).Methods("GET")
 
 	router.HandleFunc("/{username}", handler.UserpageRoute).Methods("GET")
 
