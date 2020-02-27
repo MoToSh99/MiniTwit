@@ -55,7 +55,7 @@ func InitDB() *gorm.DB {
 	if err != nil {
 		panic("failed to connect database")
 	}
-	return db
+	return db 
 }
 
 func HashPassword(password string) string {
