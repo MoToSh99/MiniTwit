@@ -36,6 +36,11 @@ func GetConnString() string {
 }
 
 func GetDB() *gorm.DB {
+	return db
+}
+
+func InitDB() *gorm.DB {
+
 
 	var server = "minitwitserver.database.windows.net"
 	var port = 1433
@@ -46,12 +51,15 @@ func GetDB() *gorm.DB {
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
 		server, user, password, port, database)
 
-	db, err := gorm.Open("mssql", connString)
+	db, err = gorm.Open("mssql", connString)
+
 
 	if err != nil {
-		panic("failed to connect database")
+		panic("failed to connect database") 
 	}
-	return db
+  
+	return db 
+
 }
 
 func HashPassword(password string) string {
