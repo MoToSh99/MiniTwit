@@ -6,13 +6,15 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
 	cookies "../cookies"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
 	structs "../structs"
-	"database/sql"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
 )
 
-var db *sql.DB
+var db *gorm.DB
+var err error
 
 type Post struct {
 	Username      string
@@ -26,9 +28,7 @@ type Post struct {
 
 func GetUserID(username string) int {
 	db := GetDB()
-	defer db.Close()
 
-	
 	user := structs.User{}
 
 	db.Where("username = ?", username).First(&user)
@@ -39,7 +39,6 @@ func GetUserID(username string) int {
 
 func CheckUsernameExists(username string) bool {
 	db := GetDB()
-	defer db.Close()
 
 	type Output struct {
 		Id int
@@ -69,19 +68,18 @@ func GetGravatarHash(g_email string) string {
 
 func GetAllPosts() []Post {
 	db := GetDB()
-	defer db.Close()
 
 	messages := []structs.Message{}
 
-	db.Order("pub_date desc").Where("flagged = ?",0).Find(&messages)
+	db.Order("pub_date desc").Where("flagged = ?", 0).Find(&messages)
 
 	var postSlice []Post
 	for _, m := range messages {
-		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
+		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)}
 		postSlice = append(postSlice, post)
 	}
 
-	return postSlice;
+	return postSlice
 }
 
 func GetUserName(request *http.Request) (userName string) {
@@ -96,14 +94,12 @@ func GetUserName(request *http.Request) (userName string) {
 
 func ValidUser(username string, psw string) bool {
 	db := GetDB()
-	defer db.Close()
 
 	user := structs.User{}
 
 	db.Where("username = ?", username).First(&user)
 
-
-	if (CheckPasswordHash(psw, user.Pw_hash)){
+	if CheckPasswordHash(psw, user.Pw_hash) {
 		return true
 	} else {
 		return false
@@ -125,27 +121,23 @@ func UserIsValid(uName, pwd string) bool {
 
 func GetUserPosts(username string) []Post {
 	db := GetDB()
-	defer db.Close()
 
 	messages := []structs.Message{}
-	
-	db.Order("pub_date desc").Where("flagged = ? AND author_id = ? ",0, GetUserID(username)).Or("author_id in (select whom_id from followers where who_id = ?)", GetUserID(username)).Find(&messages)
+
+	db.Order("pub_date desc").Where("flagged = ? AND author_id = ? ", 0, GetUserID(username)).Or("author_id in (select whom_id from followers where who_id = ?)", GetUserID(username)).Find(&messages)
 
 	var postSlice []Post
 	for _, m := range messages {
-		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
+		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)}
 		postSlice = append(postSlice, post)
 	}
 
-	return postSlice;
+	return postSlice
 
 }
 
-
-
 func GetUsernameFromID(id int) string {
 	db := GetDB()
-	defer db.Close()
 
 	user := structs.User{}
 
@@ -157,7 +149,6 @@ func GetUsernameFromID(id int) string {
 
 func GetImageFromID(id int) string {
 	db := GetDB()
-	defer db.Close()
 
 	user := structs.User{}
 
@@ -178,7 +169,6 @@ func PostsAmount(posts []Post) bool {
 
 func CheckIfFollowed(who string, whom string) bool {
 	db := GetDB()
-	defer db.Close()	
 	output := []structs.Follower{}
 	db.Where("who_id = ? AND whom_id = ?", GetUserID(whom), GetUserID(who)).Find(&output)
 
