@@ -53,7 +53,7 @@ func InitDB() *gorm.DB {
 	db, err = gorm.Open("mssql", connString)
 
 	if err != nil {
-		panic("failed to connect database")
+		panic("failed to connect database") 
 	}
 	return db 
 }
