@@ -1,0 +1,17 @@
+
+version: '3.3'
+
+networks:
+  main:
+
+services:
+
+  minitwitimage:
+    image: ${DOCKERHUB_USERNAME}/minitwitimage
+    container_name: minitwit
+    networks:
+      - main
+    ports:
+        - '5000:5000'
+        - '5001:5001'
+
