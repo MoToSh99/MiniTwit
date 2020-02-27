@@ -19,7 +19,7 @@ func IsEmpty(data string) bool {
 
 func GetCurrentTime() string {
 	dt := time.Now()
-	return (dt.Format("15:04:05 02-01-2006"))
+	return (dt.Format("2006-01-02 15:04:05"))
 }
 
 func GetConnString() string {
@@ -41,6 +41,7 @@ func GetDB() *gorm.DB {
 
 func InitDB() *gorm.DB {
 
+
 	var server = "minitwitserver.database.windows.net"
 	var port = 1433
 	var user = "Minitwit"
@@ -52,10 +53,13 @@ func InitDB() *gorm.DB {
 
 	db, err = gorm.Open("mssql", connString)
 
+
 	if err != nil {
 		panic("failed to connect database") 
 	}
+  
 	return db 
+
 }
 
 func HashPassword(password string) string {
