@@ -85,7 +85,6 @@ func GetAllPosts() []Post {
 
 func GetMoreposts(numberOfPosts int) []Post {
 	db := GetDB()
-	defer db.Close()
 
 	messages := []structs.Message{}
 
