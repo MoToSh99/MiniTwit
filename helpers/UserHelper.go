@@ -82,6 +82,26 @@ func GetAllPosts() []Post {
 	return postSlice
 }
 
+
+func GetMoreposts(numberOfPosts int) []Post {
+	db := GetDB()
+	defer db.Close()
+
+	messages := []structs.Message{}
+
+	db.Limit(numberOfPosts).Order("pub_date desc").Where("flagged = ?",0).Find(&messages)
+
+	var postSlice []Post
+	for _, m := range messages {
+		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
+		postSlice = append(postSlice, post)
+	}
+	
+	return postSlice;
+}
+ 
+
+
 func GetUserName(request *http.Request) (userName string) {
 	if cookie, err := request.Cookie("cookie"); err == nil {
 		cookieValue := make(map[string]string)

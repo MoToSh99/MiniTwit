@@ -6,7 +6,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"fmt"
-
 	cookies "../cookies"
 	helpers "../helpers"
 	structs "../structs"
@@ -26,11 +25,11 @@ type Post struct {
 	Image         string
 }
 
-type User struct {
-	user_id   int
-	username  string
-	email     string
-	pw_hash   string
+type User struct  {
+	user_id int
+	username string
+	email string
+	pw_hash string
 	image_url string
 }
 
@@ -41,14 +40,15 @@ type follower struct {
 
 type message struct {
 	message_id int
-	author_id  int
-	text       string
-	pub_date   string
-	flagged    int
-}
+	author_id int
+	text string 
+	pub_date string
+	flagged int
+  }
 
-func UserFollowHandler(res http.ResponseWriter, req *http.Request) {
-	if helpers.IsEmpty(helpers.GetUserName(req)) {
+func UserFollowHandler(res http.ResponseWriter, req *http.Request){
+	if (helpers.IsEmpty(helpers.GetUserName(req))){
+
 		res.WriteHeader(http.StatusUnauthorized)
 	}
 
@@ -72,9 +72,10 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
 	db := helpers.GetDB()
 
 	follow := structs.Follower{}
-	db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(helpers.GetUserName(req)), helpers.GetUserID(vars["username"])).Delete(follow)
+	db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(helpers.GetUserName(req)),helpers.GetUserID(vars["username"])).Delete(follow)
 
-	http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
+    http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
+
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {

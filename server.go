@@ -49,6 +49,9 @@ func main() {
 
 	router.HandleFunc("/publictimeline", handler.PublicTimelineRoute).Methods("GET")
 
+	router.HandleFunc("/publictimeline/more", handler.PublicTimelineLoadMore).Methods("GET")
+
+
 	router.HandleFunc("/{username}", handler.UserpageRoute).Methods("GET")
 
 	router.HandleFunc("/{username}/follow", handler.UserFollowHandler)
