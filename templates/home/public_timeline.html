@@ -13,10 +13,10 @@
         {{ .Text }}
         <small>&mdash; {{ .Date }}</small>
         {{ end }}
+        {{if .showMoreActive}}
+        <button><a href="/publictimeline/more" style="text-decoration: none;">Show all</a></button>
     {{ end }}
     </ul>
-    {{if .showMoreActive}}
-    <button><a href="/publictimeline/more" style="text-decoration: none;">Show all</a></button>
     {{ end }}
 {{ end }}
 

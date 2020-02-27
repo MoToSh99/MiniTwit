@@ -4,9 +4,7 @@ import (
 	"net/http"
 	"github.com/gorilla/mux"
 	"database/sql"
-	
 	"fmt"
-
 	helpers "../helpers"
 	cookies "../cookies"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
@@ -24,7 +22,6 @@ type Post struct {
 	Flag int
 	Image string
 }
-
 
 type User struct  {
 	user_id int
@@ -47,8 +44,6 @@ type User struct  {
 	flagged int
   }
 
-
-
 func UserFollowHandler(res http.ResponseWriter, req *http.Request){
 	if (helpers.IsEmpty(helpers.GetUserName(req))){
 		res.WriteHeader(http.StatusUnauthorized)
@@ -64,9 +59,6 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request){
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
 
-
-
-
 func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 	if (helpers.IsEmpty(helpers.GetUserName(req))){
 		res.WriteHeader(http.StatusUnauthorized)
@@ -79,8 +71,6 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request){
 
 	follow := structs.Follower{}
 	db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(helpers.GetUserName(req)),helpers.GetUserID(vars["username"])).Delete(follow)
-
-
 
     http.Redirect(res, req, fmt.Sprintf("/%v", vars["username"]), 302)
 }
@@ -167,4 +157,3 @@ func LogoutHandler(response http.ResponseWriter, request *http.Request) {
     cookies.ClearCookie(response)
     http.Redirect(response, request, "/", 302)
 }
-
