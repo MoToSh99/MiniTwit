@@ -6,16 +6,17 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
-	"database/sql"
+
 	helpers "../helpers"
 	structs "../structs"
-	"github.com/gorilla/mux"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/Jeffail/gabs"
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
-var db *sql.DB
+var db *gorm.DB
 
 var gLATEST = 0
 
@@ -77,7 +78,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		db := helpers.GetDB()
-		defer db.Close()
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email)
 		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: helpers.HashPassword(user.Pwd), Image_url: gravatar_url})
@@ -104,7 +104,6 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 	db := helpers.GetDB()
-	defer db.Close()
 
 	var postSlice []Post
 
@@ -129,8 +128,6 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 		db := helpers.GetDB()
 		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 
-		defer db.Close()
-
 		var postSlice []Post
 
 		db.Table("messages").Limit(no).Order("messages.pub_date").Select("messages.text, messages.pub_date, users.username").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0 AND users.username = ?", vars["username"]).Scan(&postSlice)
@@ -149,7 +146,6 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 		}
 
 		db := helpers.GetDB()
-		defer db.Close()
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
 
@@ -192,7 +188,6 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		}
 
 		db := helpers.GetDB()
-		defer db.Close()
 
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
@@ -207,29 +202,26 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		db := helpers.GetDB()
-		defer db.Close()
 
 		follow := structs.Follower{}
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
 	} else if r.Method == http.MethodGet {
 		db := helpers.GetDB()
-		defer db.Close()
 
 		userSlice := []structs.Follower{}
 
 		db.Limit(no).Where("who_id = ?", helpers.GetUserID(vars["username"])).Order("whom_id").Find(&userSlice)
 
-        jsonObj := gabs.New()
-        jsonObj.Array("follows")
-        for _, v := range userSlice {
-            jsonObj.ArrayAppend(helpers.GetUsernameFromID(v.Whom_id), "follows")
-        }
+		jsonObj := gabs.New()
+		jsonObj.Array("follows")
+		for _, v := range userSlice {
+			jsonObj.ArrayAppend(helpers.GetUsernameFromID(v.Whom_id), "follows")
+		}
 
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w,jsonObj.StringIndent("", "  "))
-		
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprintln(w, jsonObj.StringIndent("", "  "))
 
 	}
 }
