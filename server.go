@@ -1,37 +1,33 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
-	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
-	_ "github.com/mattn/go-sqlite3"
-    _ "github.com/jinzhu/gorm/dialects/mssql"
+
 	api "./api"
 	handler "./handlers"
-	structs "./structs"
 	helpers "./helpers"
+	structs "./structs"
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/mssql"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-
-var db *sql.DB
+var db *gorm.DB
 
 func init() {
 	handler.LoadTemplates()
 }
 
-
-
 func main() {
-	db := helpers.GetDB()
-	
+	db := helpers.InitDB()
 	defer db.Close()
 
 	db.AutoMigrate(&structs.User{}, &structs.Follower{}, &structs.Message{})
 
 	router := mux.NewRouter()
-
 
 	router.HandleFunc("/favicon.ico", faviconHandler)
 
@@ -43,25 +39,23 @@ func main() {
 	router.HandleFunc("/signin", handler.SigninRoute).Methods("GET")
 	router.HandleFunc("/signin", handler.LoginHandler).Methods("POST")
 
-
 	router.HandleFunc("/register", handler.SignupRoute).Methods("GET")
 	router.HandleFunc("/register", handler.RegisterHandler).Methods("POST")
-	
+
 	router.HandleFunc("/personaltimeline", handler.PersonalTimelineRoute).Methods("GET")
 	router.HandleFunc("/personaltimeline", handler.PersonalTimelineHandler).Methods("POST")
-	
 
 	router.HandleFunc("/signout", handler.LogoutHandler)
 
 	router.HandleFunc("/publictimeline", handler.PublicTimelineRoute).Methods("GET")
+
 	router.HandleFunc("/publictimeline/more", handler.PublicTimelineLoadMore).Methods("GET")
+
 
 	router.HandleFunc("/{username}", handler.UserpageRoute).Methods("GET")
 
 	router.HandleFunc("/{username}/follow", handler.UserFollowHandler)
 	router.HandleFunc("/{username}/unfollow", handler.UserUnfollowHandler)
-
-	
 
 	apiRoute := mux.NewRouter()
 	//apiRoute.HandleFunc("/test", api.Test)
@@ -71,21 +65,17 @@ func main() {
 	apiRoute.HandleFunc("/msgs/{username}", api.Messages_per_user)
 	apiRoute.HandleFunc("/fllws/{username}", api.Follow)
 
-
-
-
 	port := 5000
 	log.Printf("Server starting on port %v\n", port)
-	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router))}()
+	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router)) }()
 
 	apiport := 5001
 	log.Printf("Api Server starting on port %v\n", apiport)
-    go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute))}()
-	
-    select {}
+	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute)) }()
+
+	select {}
 }
 
 func faviconHandler(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "/public/favicon.ico")
 }
-
