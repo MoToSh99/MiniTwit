@@ -78,19 +78,35 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
 
-	uName := r.FormValue("username")
-	email := r.FormValue("email")
+    r.ParseForm()
+ 
+    uName := r.FormValue("username")
+    email := r.FormValue("email")
 	pwd := r.FormValue("pwd")
-
-	_uName, _email, _pwd := false, false, false
-	_uName = !helpers.IsEmpty(uName)
-	_email = !helpers.IsEmpty(email)
+	pwdconfirm := r.FormValue("confirmPassword")
+ 
+    _uName, _email, _pwd, _pwdconfirm := false, false, false, false
+    _uName = !helpers.IsEmpty(uName)
+    _email = !helpers.IsEmpty(email)
 	_pwd = !helpers.IsEmpty(pwd)
+	_pwdconfirm = !helpers.IsEmpty(pwdconfirm)
+	
+	errorMsg :=  ""
 
-	if _uName && _email && _pwd {
-		if !helpers.CheckUsernameExists(uName) {
+	if (!_uName){
+		errorMsg = "You have to enter a username"
+	} else if (!_email){
+		errorMsg = "You have to enter a valid email address"
+	} else if (!_pwd) {
+		errorMsg = "You have to enter a password"
+	}else if (!_pwdconfirm){
+		errorMsg = "You have to confirm your password"
+	} else if (pwd != pwdconfirm){
+		errorMsg = "The two passwords do not match"
+	} else if  (helpers.CheckUsernameExists(uName)){
+		errorMsg = "The username is already taken"
+	} else {
 			db := helpers.GetDB()
 			gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(email)
 
@@ -102,12 +118,20 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 			cookies.SetCookie(uName, w)
 			redirectTarget := "/personaltimeline"
 			http.Redirect(w, r, redirectTarget, 302)
-		} else {
-			fmt.Fprintln(w, "User already exits")
-		}
+	}
+	ShowSignUpError(w , r , errorMsg)
+	
+	
+}
 
-	} else {
-		fmt.Fprintln(w, "This fields can not be blank!")
+
+func ShowSignUpError(w http.ResponseWriter, r *http.Request, errorMsg string){
+	if err := templates["signup"].Execute(w, map[string]interface{}{
+		"error" : true,
+		"FlashedMessages": errorMsg,
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
 	}
 }
 
