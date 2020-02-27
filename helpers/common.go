@@ -46,7 +46,7 @@ func GetDB() *gorm.DB {
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
 		server, user, password, port, database)
 
-	db, err := gorm.Open("mssql", connString)
+	db, err := gorm.Open("sqlite3", "minitwit.db")
 
 	if err != nil {
 		panic("failed to connect database")
