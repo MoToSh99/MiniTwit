@@ -3,6 +3,7 @@ package helpers
 import (
 	"crypto/md5"
 	"encoding/hex"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -17,13 +18,13 @@ var db *gorm.DB
 var err error
 
 type Post struct {
-	Username      string
-	PostMessageid int
-	AuthorId      int
-	Text          string
-	Date          string
-	Flag          int
-	Image         string
+	Username   string
+	Message_id int
+	Author_id  int
+	Text       string
+	Pub_date   string
+	Flagged    int
+	Image_url  string
 }
 
 func GetUserID(username string) int {
@@ -69,37 +70,20 @@ func GetGravatarHash(g_email string) string {
 func GetAllPosts() []Post {
 	db := GetDB()
 
-	messages := []structs.Message{}
-
-	db.Order("pub_date desc").Where("flagged = ?", 0).Find(&messages)
-
 	var postSlice []Post
-	for _, m := range messages {
-		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)}
-		postSlice = append(postSlice, post)
-	}
+	db.Table("messages").Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0").Scan(&postSlice)
 
 	return postSlice
 }
 
-
 func GetMoreposts(numberOfPosts int) []Post {
 	db := GetDB()
 
-	messages := []structs.Message{}
-
-	db.Limit(numberOfPosts).Order("pub_date desc").Where("flagged = ?",0).Find(&messages)
-
 	var postSlice []Post
-	for _, m := range messages {
-		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)  }
-		postSlice = append(postSlice, post)
-	}
-	
-	return postSlice;
+	db.Table("messages").Limit(10).Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0").Scan(&postSlice)
+	fmt.Println(postSlice[0])
+	return postSlice
 }
- 
-
 
 func GetUserName(request *http.Request) (userName string) {
 	if cookie, err := request.Cookie("cookie"); err == nil {
@@ -141,16 +125,9 @@ func UserIsValid(uName, pwd string) bool {
 func GetUserPosts(username string) []Post {
 	db := GetDB()
 
-	messages := []structs.Message{}
-
-	db.Order("pub_date desc").Where("flagged = ? AND author_id = ? ", 0, GetUserID(username)).Or("author_id in (select whom_id from followers where who_id = ?)", GetUserID(username)).Find(&messages)
-
 	var postSlice []Post
-	for _, m := range messages {
-		post := Post{Username: GetUsernameFromID(m.Author_id), PostMessageid: m.Message_id, Text: m.Text, Date: m.Pub_date, Image: GetImageFromID(m.Author_id)}
-		postSlice = append(postSlice, post)
-	}
 
+	db.Table("messages").Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0 AND users.username = ?", username).Scan(&postSlice)
 	return postSlice
 
 }
@@ -189,7 +166,7 @@ func PostsAmount(posts []Post) bool {
 func CheckIfFollowed(who string, whom string) bool {
 	db := GetDB()
 	output := []structs.Follower{}
-	db.Where("who_id = ? AND whom_id = ?", GetUserID(whom), GetUserID(who)).Find(&output)
+	db.Where("who_id = ? AND whom_id = ?", GetUserID(whom), GetUserID(who)).Scan(&output)
 
 	var rtn bool
 	if len(output) < 1 {

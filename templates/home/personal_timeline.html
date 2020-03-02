@@ -37,10 +37,10 @@
 <ul class=messages>
   {{ if .posts}} 
   {{ range .postSlice }}
-  <li><img height="48" width="48" src="{{.Image}}"><p>
+  <li><img height="48" width="48" src="{{.Image_url}}"><p>
     <strong><a href="/{{.Username}}">{{ .Username}}</a></strong>
     {{ .Text }}
-    <small>&mdash; {{ .Date }}</small>
+    <small>&mdash; {{ .Pub_date }}</small>
     {{ end }}
     {{else}}
   <li><em>There's no message so far.</em>
