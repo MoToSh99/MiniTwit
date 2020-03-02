@@ -52,7 +52,7 @@ func InitDB() *gorm.DB {
 
 	db, err = gorm.Open("mssql", connString)
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
-	db.DB().SetMaxIdleConns(0)
+	//db.DB().SetMaxIdleConns(0)
 
 	// SetMaxOpenConns sets the maximum number of open connections to the database.
 	db.DB().SetMaxOpenConns(500)
