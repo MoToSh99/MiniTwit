@@ -3,7 +3,6 @@ package helpers
 import (
 	"crypto/md5"
 	"encoding/hex"
-	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -81,7 +80,6 @@ func GetMoreposts(numberOfPosts int) []Post {
 
 	var postSlice []Post
 	db.Table("messages").Limit(10).Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0").Scan(&postSlice)
-	fmt.Println(postSlice[0])
 	return postSlice
 }
 
