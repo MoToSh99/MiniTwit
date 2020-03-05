@@ -2,9 +2,7 @@ package handlers
 
 import (
 	"net/http"
-
 	"github.com/gorilla/mux"
-
 	"fmt"
 
 	cookies "../cookies"
@@ -81,6 +79,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
+
 	r.ParseForm()
 
 	uName := r.FormValue("username")
@@ -130,7 +129,6 @@ func ShowSignUpError(w http.ResponseWriter, r *http.Request, errorMsg string) {
 		"FlashedMessages": errorMsg,
 	}); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-
 	}
 }
 
