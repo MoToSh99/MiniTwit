@@ -1,13 +1,13 @@
 package structs
 
 type Post struct {
-	Username      string
-	PostMessageid int
-	AuthorId      int
-	Text          string
-	Date          string
-	Flag          int
-	Image         string
+	Username   string
+	Message_id int
+	Author_id  int
+	Text       string
+	Pub_date   string
+	Flagged    int
+	Image_url  string
 }
 
 type User struct {
@@ -19,7 +19,7 @@ type User struct {
 }
 
 type Follower struct {
-	Who_id  int 
+	Who_id  int
 	Whom_id int
 }
 
