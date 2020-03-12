@@ -9,6 +9,7 @@ import (
 	handler "./handlers"
 	helpers "./helpers"
 	structs "./structs"
+	metrics "./metrics"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
@@ -26,40 +27,14 @@ func init() {
 	handler.LoadTemplates()
 }
 
-var (
-	CPU_GAUGE  = promauto.NewGauge(prometheus.GaugeOpts{
-			Name: "minitwit_cpu_load_percent",
-			Help: "Current load of the CPU in percent.",
-	})
-	
-	REPONSE_COUNTER = promauto.NewCounter(prometheus.CounterOpts{
-		Name: "myapp_processed_ops_total",
-		Help: "The count of HTTP responses sent.",
-	})
-
-	REQ_DURATION_SUMMARY = promauto.NewHistogram(prometheus.HistogramOpts{
-		Name: "minitwit_request_duration_milliseconds",
-		Help: "Request duration distribution.",
-	})
+var metricsMonitor = metrics.Combine(
+	metrics.HTTPResponseCodeMonitor,
+	metrics.HTTPResponseTimeMonitor,
+	metrics.HTTPRequestCountMonitor,
 )
 
+
 func main() {
-	rand.Seed(time.Now().Unix())
-
-	http.Handle("/metrics", promhttp.Handler())
-
-
-
-	go func() {
-		for {
-				CPU_GAUGE.Add(rand.Float64()* 15 - 5)
-				REPONSE_COUNTER.Add(rand.Float64()* 5)
-				REQ_DURATION_SUMMARY.Observe(rand.Float64() * 10)
-
-				time.Sleep(time.Second)
-		}
-}()
-	
 
 	db := helpers.InitDB()
 	defer db.Close()
@@ -68,7 +43,10 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.Handle("/metrics", promhttp.Handler())
+
 	router.HandleFunc("/favicon.ico", faviconHandler)
+
 
 	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	router.HandleFunc("/", handler.PublicTimelineRoute).Methods("GET")
@@ -97,11 +75,11 @@ func main() {
 
 	apiRoute := mux.NewRouter()
 	//apiRoute.HandleFunc("/test", api.Test)
-	apiRoute.HandleFunc("/latest", api.Get_latest)
-	apiRoute.HandleFunc("/register", api.Register).Methods("POST")
-	apiRoute.HandleFunc("/msgs", api.Messages)
-	apiRoute.HandleFunc("/msgs/{username}", api.Messages_per_user)
-	apiRoute.HandleFunc("/fllws/{username}", api.Follow)
+	apiRoute.HandleFunc("/latest", metricsMonitor(api.Get_latest))
+	apiRoute.HandleFunc("/register", metricsMonitor(api.Register)).Methods("POST")
+	apiRoute.HandleFunc("/msgs", metricsMonitor(api.Messages))
+	apiRoute.HandleFunc("/msgs/{username}", metricsMonitor(api.Messages_per_user))
+	apiRoute.HandleFunc("/fllws/{username}", metricsMonitor(api.Follow))
 
 	port := 5000
 	log.Printf("Server starting on port %v\n", port)
@@ -110,6 +88,8 @@ func main() {
 	apiport := 5001
 	log.Printf("Api Server starting on port %v\n", apiport)
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute)) }()
+
+	go metrics.HTTPRequestCounter()
 
 	select {}
 }

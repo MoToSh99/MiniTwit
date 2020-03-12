@@ -9,6 +9,7 @@ import (
 
 	helpers "../helpers"
 	structs "../structs"
+	metrics "../metrics"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -80,6 +81,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		db := helpers.GetDB()
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email)
+		
+		metrics.UsersRegistered.Inc()
+
 		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: helpers.HashPassword(user.Pwd), Image_url: gravatar_url})
 
 	}
@@ -149,6 +153,8 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
 
+		metrics.MessagesSent.Inc()
+		
 		w.WriteHeader(http.StatusNoContent)
 	}
 
@@ -188,7 +194,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		}
 
 		db := helpers.GetDB()
-
+		metrics.UsersFollowed.Inc()
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
 	} else if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Unfollow_username) {
@@ -204,7 +210,11 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		db := helpers.GetDB()
 
 		follow := structs.Follower{}
+
+		metrics.UsersUnfollowed.Inc()
+
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
+
 
 	} else if r.Method == http.MethodGet {
 		db := helpers.GetDB()
