@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
+	"time"
 	api "./api"
 	handler "./handlers"
 	helpers "./helpers"
@@ -13,6 +13,11 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/prometheus/client_golang/prometheus"
+    "github.com/prometheus/client_golang/prometheus/promauto"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"math/rand"
 )
 
 var db *gorm.DB
@@ -21,7 +26,41 @@ func init() {
 	handler.LoadTemplates()
 }
 
+var (
+	CPU_GAUGE  = promauto.NewGauge(prometheus.GaugeOpts{
+			Name: "minitwit_cpu_load_percent",
+			Help: "Current load of the CPU in percent.",
+	})
+	
+	REPONSE_COUNTER = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "myapp_processed_ops_total",
+		Help: "The count of HTTP responses sent.",
+	})
+
+	REQ_DURATION_SUMMARY = promauto.NewHistogram(prometheus.HistogramOpts{
+		Name: "minitwit_request_duration_milliseconds",
+		Help: "Request duration distribution.",
+	})
+)
+
 func main() {
+	rand.Seed(time.Now().Unix())
+
+	http.Handle("/metrics", promhttp.Handler())
+
+
+
+	go func() {
+		for {
+				CPU_GAUGE.Add(rand.Float64()* 15 - 5)
+				REPONSE_COUNTER.Add(rand.Float64()* 5)
+				REQ_DURATION_SUMMARY.Observe(rand.Float64() * 10)
+
+				time.Sleep(time.Second)
+		}
+}()
+	
+
 	db := helpers.InitDB()
 	defer db.Close()
 
