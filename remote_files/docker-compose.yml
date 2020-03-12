@@ -7,7 +7,7 @@ networks:
 services:
 
   minitwitimage:
-    image: motosh/minitwitimage
+    image: ${DOCKERHUB_USERNAME}/minitwitimage
     container_name: minitwit
     networks:
       - main
