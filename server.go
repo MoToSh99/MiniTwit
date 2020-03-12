@@ -4,15 +4,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-
 	api "./api"
 	handler "./handlers"
 	helpers "./helpers"
 	structs "./structs"
+	metrics "./metrics"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/mattn/go-sqlite3"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 var db *gorm.DB
@@ -21,7 +23,15 @@ func init() {
 	handler.LoadTemplates()
 }
 
+var metricsMonitor = metrics.Combine(
+	metrics.HTTPResponseCodeMonitor,
+	metrics.HTTPResponseTimeMonitor,
+	metrics.HTTPRequestCountMonitor,
+)
+
+
 func main() {
+
 	db := helpers.InitDB()
 	defer db.Close()
 
@@ -29,7 +39,10 @@ func main() {
 
 	router := mux.NewRouter()
 
+	router.Handle("/metrics", promhttp.Handler())
+
 	router.HandleFunc("/favicon.ico", faviconHandler)
+
 
 	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	router.HandleFunc("/", handler.PublicTimelineRoute).Methods("GET")
@@ -58,11 +71,11 @@ func main() {
 
 	apiRoute := mux.NewRouter()
 	//apiRoute.HandleFunc("/test", api.Test)
-	apiRoute.HandleFunc("/latest", api.Get_latest)
-	apiRoute.HandleFunc("/register", api.Register).Methods("POST")
-	apiRoute.HandleFunc("/msgs", api.Messages)
-	apiRoute.HandleFunc("/msgs/{username}", api.Messages_per_user)
-	apiRoute.HandleFunc("/fllws/{username}", api.Follow)
+	apiRoute.HandleFunc("/latest", metricsMonitor(api.Get_latest))
+	apiRoute.HandleFunc("/register", metricsMonitor(api.Register)).Methods("POST")
+	apiRoute.HandleFunc("/msgs", metricsMonitor(api.Messages))
+	apiRoute.HandleFunc("/msgs/{username}", metricsMonitor(api.Messages_per_user))
+	apiRoute.HandleFunc("/fllws/{username}", metricsMonitor(api.Follow))
 
 	port := 5000
 	log.Printf("Server starting on port %v\n", port)
@@ -71,6 +84,8 @@ func main() {
 	apiport := 5001
 	log.Printf("Api Server starting on port %v\n", apiport)
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute)) }()
+
+	go metrics.HTTPRequestCounter()
 
 	select {}
 }

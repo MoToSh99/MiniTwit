@@ -9,7 +9,9 @@ RUN go get github.com/jinzhu/gorm/dialects/sqlite
 RUN go get github.com/jinzhu/inflection
 RUN go get golang.org/x/crypto/bcrypt
 RUN go get github.com/jinzhu/gorm/dialects/mssql
-
+RUN go get github.com/prometheus/client_golang/prometheus
+RUN go get github.com/prometheus/client_golang/prometheus/promauto
+RUN go get github.com/prometheus/client_golang/prometheus/promhttp
 
 
 WORKDIR /src
@@ -18,6 +20,9 @@ COPY . .
 
 EXPOSE 5000
 EXPOSE 5001
+EXPOSE 3000
+EXPOSE 9090
+
 
 RUN go build /src/server.go
 
