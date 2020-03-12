@@ -1,5 +1,5 @@
 
-version: '3.3'
+version: '3.5'
 
 networks:
   main:
@@ -7,11 +7,31 @@ networks:
 services:
 
   minitwitimage:
-    image: ${DOCKERHUB_USERNAME}/minitwitimage
+    image: motosh/minitwitimage
     container_name: minitwit
     networks:
       - main
     ports:
         - '5000:5000'
         - '5001:5001'
+    depends_on:
+        - grafana
+        - prometheus
 
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    volumes:
+      - ../prometheus.yml:/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    networks:
+      - main
+
+
+  grafana:
+    image: grafana/grafana:4.5.2
+    ports:
+      - "3000:3000"  
+    networks:
+      - main
