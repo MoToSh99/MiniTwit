@@ -24,7 +24,11 @@ var ResponseTime = promauto.NewHistogram(prometheus.HistogramOpts{
 	Subsystem: "minitwit",
 	Name:      "response_time_ms",
 	Help:      "A histogram of the response time of all request coming into the website.",
+	Buckets: []float64{
+		0.1, 1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 5000.0, 10000.0,
+	},
 })
+
 
 var RequestsLast5Min = promauto.NewGauge(prometheus.GaugeOpts{
 	Subsystem: "minitwit",

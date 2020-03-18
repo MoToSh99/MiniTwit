@@ -5,24 +5,11 @@ networks:
   main:
 
 services:
-
-  minitwitimage:
-    image: minitwitlocal
-    container_name: minitwit
-    networks:
-      - main
-    ports:
-        - '5000:5000'
-        - '5001:5001'
-    depends_on:
-        - grafana
-        - prometheus
-
   prometheus:
     image: prom/prometheus
     container_name: prometheus
     volumes:
-      - ../prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
     ports:
       - "9090:9090"
     networks:
