@@ -24,6 +24,6 @@ scrape_configs:
     scrape_interval: 5s
 
     static_configs:
-      - targets: ['localhost:5000']
+      - targets: ['46.101.166.100:5000']
         labels:
           group: 'production'
