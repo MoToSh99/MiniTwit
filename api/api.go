@@ -87,7 +87,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 		db := helpers.GetDB()
 
-		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email)
+		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email) + "?&d=identicon"
 
 		metrics.UsersRegistered.Inc()
 
