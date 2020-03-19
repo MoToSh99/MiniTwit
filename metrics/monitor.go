@@ -20,6 +20,46 @@ var HTTPResponses = promauto.NewHistogram(prometheus.HistogramOpts{
 	},
 })
 
+var ResponseTimeFollow = promauto.NewHistogram(prometheus.HistogramOpts{
+	Subsystem: "minitwit",
+	Name:      "follow_response_time_ms",
+	Help:      "A histogram of the response time of follow request coming into the website.",
+	Buckets: []float64{
+		0.1, 1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 5000.0, 10000.0,
+	},
+})
+var ResponseTimeMsgsPerUser = promauto.NewHistogram(prometheus.HistogramOpts{
+	Subsystem: "minitwit",
+	Name:      "msgs_per_user_response_time_ms",
+	Help:      "A histogram of the response time of messages_per_user request coming into the website.",
+	Buckets: []float64{
+		0.1, 1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 5000.0, 10000.0,
+	},
+})
+var ResponseTimeMsgs = promauto.NewHistogram(prometheus.HistogramOpts{
+	Subsystem: "minitwit",
+	Name:      "msgs_response_time_ms",
+	Help:      "A histogram of the response time of messages request coming into the website.",
+	Buckets: []float64{
+		0.1, 1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 5000.0, 10000.0,
+	},
+})
+var ResponseTimeLatest = promauto.NewHistogram(prometheus.HistogramOpts{
+	Subsystem: "minitwit",
+	Name:      "latest_response_time_ms",
+	Help:      "A histogram of the response time of latest request coming into the website.",
+	Buckets: []float64{
+		0.1, 1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 5000.0, 10000.0,
+	},
+})
+var ResponseTimeRegister = promauto.NewHistogram(prometheus.HistogramOpts{
+	Subsystem: "minitwit",
+	Name:      "register_response_time_ms",
+	Help:      "A histogram of the response time of register request coming into the website.",
+	Buckets: []float64{
+		0.1, 1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 5000.0, 10000.0,
+	},
+})
 var ResponseTime = promauto.NewHistogram(prometheus.HistogramOpts{
 	Subsystem: "minitwit",
 	Name:      "response_time_ms",
@@ -28,7 +68,6 @@ var ResponseTime = promauto.NewHistogram(prometheus.HistogramOpts{
 		0.1, 1.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0, 75.0, 100.0, 150.0, 200.0, 300.0, 400.0, 500.0, 750.0, 1000.0, 1500.0, 2000.0, 5000.0, 10000.0,
 	},
 })
-
 
 var RequestsLast5Min = promauto.NewGauge(prometheus.GaugeOpts{
 	Subsystem: "minitwit",
