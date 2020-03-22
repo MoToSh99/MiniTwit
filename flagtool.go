@@ -16,7 +16,7 @@ var helpString = "ITU-Minitwit Tweet Flagging ToolUsage:\n\n" +
 	"-h            Show this screen.\n" +
 	"-i            Dump all tweets and authors to STDOUT.\n"
 
-func main() {
+func mains() {
 	db, err := sql.Open("sqlite3", "/tmp/minitwit.db")
 	if err != nil {
 		log.Fatal(err)

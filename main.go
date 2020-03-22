@@ -9,13 +9,12 @@ import (
 	helpers "./helpers"
 	structs "./structs"
 	metrics "./metrics"
-	swaggerFiles "github.com/swaggo/files"
-	"github.com/swaggo/gin-swagger"
+	"github.com/swaggo/http-swagger"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/mattn/go-sqlite3"
-	_ "github.com/MoToSh99/MiniTwit/tree/feature/newSwagger/docs"
+	_ "./docs"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -28,7 +27,7 @@ import (
 // @contact.email dallasmaxwell@outlook.com
 
 // @license.name Apache 2.0
-// @host localhost:5001
+// @host localhost:5000
 
 // @BasePath /api/v1
 
@@ -55,6 +54,10 @@ func main() {
 	router := mux.NewRouter()
 
 	router.Handle("/metrics", promhttp.Handler())
+
+	//Får en 404 page not found her
+	//Prøver at tage udgangspunkt i https://github.com/swaggo/http-swagger
+	router.PathPrefix("/docs").Handler(httpSwagger.WrapHandler)
 
 	router.HandleFunc("/favicon.ico", faviconHandler)
 
@@ -91,8 +94,6 @@ func main() {
 	apiRoute.HandleFunc("/msgs", metricsMonitor(api.Messages))
 	apiRoute.HandleFunc("/msgs/{username}", metricsMonitor(api.Messages_per_user))
 	apiRoute.HandleFunc("/fllws/{username}", metricsMonitor(api.Follow))
-
-	apiRoute.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	port := 5000
 	log.Printf("Server starting on port %v\n", port)
