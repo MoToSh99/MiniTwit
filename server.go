@@ -9,6 +9,8 @@ import (
 	helpers "./helpers"
 	structs "./structs"
 	metrics "./metrics"
+	swaggerFiles "github.com/swaggo/files"
+	"github.com/swaggo/gin-swagger"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
@@ -16,6 +18,13 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+// @title MiniTwit Swagger API
+// @version 1.0
+// @description Swagger API for Golang Project MiniTwit.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email dallasmaxwell@outlook.com
 
 var db *gorm.DB
 

@@ -126,7 +126,7 @@ func HTTPResponseTimeMonitor(f handler) handler {
 		start := time.Now()
 		f(w, r)
 		elapsed := time.Since(start)
-		ResponseTime.Observe(float64(elapsed.Milliseconds()))
+		ResponseTime.Observe(float64(elapsed.Seconds() * 1000))
 	}
 }
 
