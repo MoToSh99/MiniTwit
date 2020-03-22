@@ -1,0 +1,14 @@
+basePath: /api/v1
+host: localhost:5001
+info:
+  contact:
+    email: dallasmaxwell@outlook.com
+    name: API Support
+  description: Swagger API for Golang Project MiniTwit.
+  license:
+    name: Apache 2.0
+  termsOfService: http://swagger.io/terms/
+  title: MiniTwit Swagger API
+  version: "1.0"
+paths: {}
+swagger: "2.0"

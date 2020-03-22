@@ -15,6 +15,7 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/MoToSh99/MiniTwit/tree/feature/newSwagger/docs"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
@@ -25,6 +26,11 @@ import (
 
 // @contact.name API Support
 // @contact.email dallasmaxwell@outlook.com
+
+// @license.name Apache 2.0
+// @host localhost:5001
+
+// @BasePath /api/v1
 
 var db *gorm.DB
 
@@ -85,6 +91,8 @@ func main() {
 	apiRoute.HandleFunc("/msgs", metricsMonitor(api.Messages))
 	apiRoute.HandleFunc("/msgs/{username}", metricsMonitor(api.Messages_per_user))
 	apiRoute.HandleFunc("/fllws/{username}", metricsMonitor(api.Follow))
+
+	apiRoute.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	port := 5000
 	log.Printf("Server starting on port %v\n", port)
