@@ -1,4 +1,3 @@
-basePath: /api/v1
 host: localhost:5001
 info:
   contact:
@@ -10,5 +9,10 @@ info:
   termsOfService: http://swagger.io/terms/
   title: MiniTwit Swagger API
   version: "1.0"
-paths: {}
+paths:
+  /latest:
+    get:
+      produces:
+      - application/json
+      summary: Get latest post id
 swagger: "2.0"

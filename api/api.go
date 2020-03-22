@@ -49,6 +49,11 @@ func Update_latest(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// Get_latest godoc
+// @Summary Get latest post id
+// @Produce json
+// @Sucess 200
+// @Router /latest [get]
 func Get_latest(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 

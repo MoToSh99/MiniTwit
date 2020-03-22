@@ -30,7 +30,16 @@ var doc = `{
     },
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
-    "paths": {}
+    "paths": {
+        "/latest": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get latest post id"
+            }
+        }
+    }
 }`
 
 type swaggerInfo struct {
@@ -45,8 +54,8 @@ type swaggerInfo struct {
 // SwaggerInfo holds exported Swagger Info so clients can modify it
 var SwaggerInfo = swaggerInfo{
 	Version:     "1.0",
-	Host:        "localhost:5000",
-	BasePath:    "/api/v1",
+	Host:        "localhost:5001",
+	BasePath:    "",
 	Schemes:     []string{},
 	Title:       "MiniTwit Swagger API",
 	Description: "Swagger API for Golang Project MiniTwit.",
