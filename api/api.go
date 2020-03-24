@@ -69,7 +69,7 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 // Register godoc
 // @Summary Post new user to register
 // @Produce json
-// @Param name string true "User Name"
+// @Param name path string true "User Name"
 // @Success 200
 // @Router /register [post]
 func Register(w http.ResponseWriter, r *http.Request) {

@@ -36,7 +36,30 @@ var doc = `{
                 "produces": [
                     "application/json"
                 ],
-                "summary": "Get latest post id"
+                "summary": "Get latest accepted id",
+                "responses": {
+                    "200": {}
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Post new user to register",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "User Name",
+                        "name": "name",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {}
+                }
             }
         }
     }
