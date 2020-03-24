@@ -24,6 +24,6 @@ EXPOSE 3000
 EXPOSE 9090
 
 
-RUN go build /src/server.go
+RUN go build /src/main.go
 
-CMD ["/src/server"]
+CMD ["/src/main"]
