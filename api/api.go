@@ -50,9 +50,9 @@ func Update_latest(res http.ResponseWriter, req *http.Request) {
 }
 
 // Get_latest godoc
-// @Summary Get latest post id
+// @Summary Get latest accepted id
 // @Produce json
-// @Sucess 200
+// @Success 200
 // @Router /latest [get]
 func Get_latest(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
@@ -65,6 +65,13 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
 }
 
+
+// Register godoc
+// @Summary Post new user to register
+// @Produce json
+// @Param name string true "User Name"
+// @Success 200
+// @Router /register [post]
 func Register(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
