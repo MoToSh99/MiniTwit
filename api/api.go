@@ -52,7 +52,7 @@ func Update_latest(res http.ResponseWriter, req *http.Request) {
 // Get_latest godoc
 // @Summary Get latest accepted id
 // @Produce json
-// @Success 200
+// @Success 200 "Returns latest accepted id by api"
 // @Router /latest [get]
 func Get_latest(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
@@ -70,7 +70,10 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 // @Summary Post new user to register
 // @Produce json
 // @Param name path string true "User Name"
-// @Success 200
+// @Param email path string true "Email"
+// @Param password path string true "Password"
+// @Success 204 "User registered"
+// @Failure 400 "Error on insert with description"
 // @Router /register [post]
 func Register(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()

@@ -15,7 +15,8 @@ paths:
       produces:
       - application/json
       responses:
-        "200": {}
+        "200":
+          description: Returns latest accepted id by api
       summary: Get latest accepted id
   /register:
     post:
@@ -25,9 +26,22 @@ paths:
         name: name
         required: true
         type: string
+      - description: Email
+        in: path
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: path
+        name: password
+        required: true
+        type: string
       produces:
       - application/json
       responses:
-        "200": {}
+        "204":
+          description: User registered
+        "400":
+          description: Error on insert with description
       summary: Post new user to register
 swagger: "2.0"

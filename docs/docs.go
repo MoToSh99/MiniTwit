@@ -38,7 +38,9 @@ var doc = `{
                 ],
                 "summary": "Get latest accepted id",
                 "responses": {
-                    "200": {}
+                    "200": {
+                        "description": "Returns latest accepted id by api"
+                    }
                 }
             }
         },
@@ -55,10 +57,29 @@ var doc = `{
                         "name": "name",
                         "in": "path",
                         "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Email",
+                        "name": "email",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Password",
+                        "name": "password",
+                        "in": "path",
+                        "required": true
                     }
                 ],
                 "responses": {
-                    "200": {}
+                    "204": {
+                        "description": "User registered"
+                    },
+                    "400": {
+                        "description": "Error on insert with description"
+                    }
                 }
             }
         }
