@@ -49,6 +49,11 @@ func Update_latest(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+// Get_latest godoc
+// @Summary Get latest accepted id
+// @Produce json
+// @Success 200 "Returns latest accepted id by api"
+// @Router /latest [get]
 func Get_latest(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
@@ -57,9 +62,19 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf(`{"latest": %v}`, gLATEST)))
 
 	elapsed := time.Since(start)
-	metrics.ResponseTimeRegister.Observe(float64(elapsed.Milliseconds()))
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
 }
 
+
+// Register godoc
+// @Summary Post new user to register
+// @Produce json
+// @Param name path string true "User Name"
+// @Param email path string true "Email"
+// @Param password path string true "Password"
+// @Success 204 "User registered"
+// @Failure 400 "Error on insert with description"
+// @Router /register [post]
 func Register(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 
@@ -102,7 +117,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 	elapsed := time.Since(start)
-	metrics.ResponseTimeRegister.Observe(float64(elapsed.Milliseconds()))
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
 }
 
 type Post struct {
@@ -127,7 +142,7 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(postSlice)
 
 	elapsed := time.Since(start)
-	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Milliseconds()))
+	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Seconds()*1000))
 }
 
 func Messages_per_user(w http.ResponseWriter, r *http.Request) {
@@ -172,7 +187,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	}
 
 	elapsed := time.Since(start)
-	metrics.ResponseTimeMsgsPerUser.Observe(float64(elapsed.Milliseconds()))
+	metrics.ResponseTimeMsgsPerUser.Observe(float64(elapsed.Seconds()*1000))
 }
 
 type FollowUser struct {
@@ -250,5 +265,5 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 	}
 	elapsed := time.Since(start)
-	metrics.ResponseTimeFollow.Observe(float64(elapsed.Milliseconds()))
+	metrics.ResponseTimeFollow.Observe(float64(elapsed.Seconds()*1000))
 }

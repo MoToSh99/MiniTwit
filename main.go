@@ -9,13 +9,27 @@ import (
 	helpers "./helpers"
 	structs "./structs"
 	metrics "./metrics"
+	"github.com/swaggo/http-swagger"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/mattn/go-sqlite3"
+	_ "./docs"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
+// @title MiniTwit Swagger API
+// @version 1.0
+// @description Swagger API for Golang Project MiniTwit.
+// @termsOfService http://swagger.io/terms/
+
+// @contact.name API Support
+// @contact.email dallasmaxwell@outlook.com
+
+// @license.name Apache 2.0
+// @host localhost:5001
+
+// @BasePath 
 
 var db *gorm.DB
 
@@ -77,12 +91,18 @@ func main() {
 	apiRoute.HandleFunc("/msgs/{username}", metricsMonitor(api.Messages_per_user))
 	apiRoute.HandleFunc("/fllws/{username}", metricsMonitor(api.Follow))
 
+	
+	//localhost:5001/docs/ Remember last backslash
+	//Prøver at tage udgangspunkt i https://github.com/swaggo/http-swagger
+	apiRoute.PathPrefix("/docs").Handler(httpSwagger.WrapHandler)
+
 	port := 5000
 	log.Printf("Server starting on port %v\n", port)
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router)) }()
 
 	apiport := 5001
 	log.Printf("Api Server starting on port %v\n", apiport)
+	log.Printf("Docs at localhost:5001/docs/ *Remember last backslash*")
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute)) }()
 
 	go metrics.HTTPRequestCounter()
