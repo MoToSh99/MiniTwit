@@ -12,6 +12,8 @@ RUN go get github.com/jinzhu/gorm/dialects/mssql
 RUN go get github.com/prometheus/client_golang/prometheus
 RUN go get github.com/prometheus/client_golang/prometheus/promauto
 RUN go get github.com/prometheus/client_golang/prometheus/promhttp
+RUN go get github.com/alecthomas/template
+RUN go get github.com/swaggo/http-swagger
 
 
 WORKDIR /src

@@ -96,7 +96,7 @@ func main() {
 	//Prøver at tage udgangspunkt i https://github.com/swaggo/http-swagger
 	apiRoute.PathPrefix("/docs").Handler(httpSwagger.WrapHandler)
 
-	port := 5000
+	port := 5002
 	log.Printf("Server starting on port %v\n", port)
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router)) }()
 
