@@ -11,6 +11,7 @@ import (
 	helpers "../helpers"
 	metrics "../metrics"
 	structs "../structs"
+	logger "../logger"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -60,7 +61,7 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(fmt.Sprintf(`{"latest": %v}`, gLATEST)))
-
+	logger.Send(fmt.Sprintf(`API - Sent latest value:  %v}`, gLATEST))
 	elapsed := time.Since(start)
 	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
 }

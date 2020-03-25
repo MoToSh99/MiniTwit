@@ -14,11 +14,13 @@ RUN go get github.com/prometheus/client_golang/prometheus/promauto
 RUN go get github.com/prometheus/client_golang/prometheus/promhttp
 RUN go get github.com/alecthomas/template
 RUN go get github.com/swaggo/http-swagger
+RUN go get github.com/bshuster-repo/logrus-logstash-hook
+RUN go get github.com/sirupsen/logrus
 
 
 WORKDIR /src
 
-COPY . .
+COPY /app .
 
 EXPOSE 5000
 EXPOSE 5001

@@ -16,6 +16,8 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 	_ "./docs"
 
+	logger "./logger"
+
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 // @title MiniTwit Swagger API
@@ -106,6 +108,8 @@ func main() {
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute)) }()
 
 	go metrics.HTTPRequestCounter()
+
+	logger.Send("Service MiniTwit Started")
 
 	select {}
 }
