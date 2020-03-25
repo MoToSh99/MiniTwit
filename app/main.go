@@ -102,7 +102,7 @@ func main() {
 	log.Printf("Server starting on port %v\n", port)
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", port), router)) }()
 
-	apiport := 5000
+	apiport := 5001
 	log.Printf("Api Server starting on port %v\n", apiport)
 	log.Printf("Docs at localhost:5001/docs/ *Remember last backslash*")
 	go func() { log.Fatal(http.ListenAndServe(fmt.Sprintf(":%v", apiport), apiRoute)) }()
