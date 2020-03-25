@@ -24,8 +24,6 @@ COPY /app .
 
 EXPOSE 5000
 EXPOSE 5001
-EXPOSE 3000
-EXPOSE 9090
 
 
 RUN go build /src/main.go

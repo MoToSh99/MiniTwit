@@ -8,9 +8,10 @@ import (
 
 func Send(msg string) {
         log := logrus.New()
-        conn, err := net.Dial("tcp", "localhost:5000")
+        conn, err := net.Dial("tcp", "165.22.76.211:5000")
         if err != nil {
-                log.Fatal(err)
+                log.Warn(err)
+                return
         }
         hook := logrustash.New(conn, logrustash.DefaultFormatter(logrus.Fields{}))
 
