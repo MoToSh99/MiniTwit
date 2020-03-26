@@ -44,6 +44,57 @@ var doc = `{
                 }
             }
         },
+        "/msgs": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Get number of messages from system",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Autherization",
+                        "name": "auth",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Returns number of messages in the system"
+                    }
+                }
+            }
+        },
+        "/msgs/{username}": {
+            "get": {
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Find messages by username",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Autherization",
+                        "name": "auth",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Username",
+                        "name": "username",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Succesfull"
+                    }
+                }
+            }
+        },
         "/register": {
             "post": {
                 "produces": [

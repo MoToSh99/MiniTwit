@@ -9,9 +9,9 @@ import (
 	"time"
 
 	helpers "../helpers"
+	logger "../logger"
 	metrics "../metrics"
 	structs "../structs"
-	logger "../logger"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -63,9 +63,8 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf(`{"latest": %v}`, gLATEST)))
 	logger.Send(fmt.Sprintf(`API - Sent latest value:  %v`, gLATEST))
 	elapsed := time.Since(start)
-	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
 }
-
 
 // Register godoc
 // @Summary Post new user to register
@@ -118,7 +117,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 	elapsed := time.Since(start)
-	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 type Post struct {
@@ -127,6 +126,12 @@ type Post struct {
 	Username string `json:"user"`
 }
 
+// Messages godoc
+// @Summary Get number of messages from system
+// @Produce json
+// @Param auth header string true "Autherization"
+// @Success @Success 200 "Returns number of messages in the system"
+// @Router /msgs [get]
 func Messages(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	Update_latest(w, r)
@@ -143,9 +148,16 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(postSlice)
 
 	elapsed := time.Since(start)
-	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Seconds() * 1000))
 }
 
+// Messages_per_user godoc
+// @Summary Find messages by username
+// @Produce json
+// @Param auth header string true "Autherization"
+// @Param username path string true "Username"
+// @Success @Success 200 "Succesfull"
+// @Router /msgs/{username} [get]
 func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	start := time.Now()
 	Update_latest(w, r)
@@ -188,7 +200,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	}
 
 	elapsed := time.Since(start)
-	metrics.ResponseTimeMsgsPerUser.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeMsgsPerUser.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 type FollowUser struct {
@@ -266,5 +278,5 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 	}
 	elapsed := time.Since(start)
-	metrics.ResponseTimeFollow.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeFollow.Observe(float64(elapsed.Seconds() * 1000))
 }

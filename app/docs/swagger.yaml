@@ -18,6 +18,39 @@ paths:
         "200":
           description: Returns latest accepted id by api
       summary: Get latest accepted id
+  /msgs:
+    get:
+      parameters:
+      - description: Autherization
+        in: header
+        name: auth
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns number of messages in the system
+      summary: Get number of messages from system
+  /msgs/{username}:
+    get:
+      parameters:
+      - description: Autherization
+        in: header
+        name: auth
+        required: true
+        type: string
+      - description: Username
+        in: path
+        name: username
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Succesfull
+      summary: Find messages by username
   /register:
     post:
       parameters:
