@@ -25,10 +25,10 @@ type Server struct {
 }
 
 // Helper functions
-
 func getServer() (s *Server) {
 	// Before each test, set up a blank database
 	os.Remove("/tmp/test.db")
+	
 	db, _ := gorm.Open("sqlite3", "/tmp/test.db")
 
 	db.AutoMigrate(&structs.User{}, &structs.Follower{}, &structs.Message{})
@@ -67,13 +67,7 @@ func getHTMLTemplate(t *testing.T, resp httptest.ResponseRecorder) string {
 func register(username string, password string, password2 string, email string, server *Server) httptest.ResponseRecorder {
 	// Helper function to register a user
 	form := url.Values{}
-	if password2 == "" {
-		password2 = password
-	}
-	if email == "" {
-		email = username + "@example.com"
-	}
-	request, _ := http.NewRequest("POST", "/register?username="+username+"&email="+email+"&password="+password+"&password2="+password2, strings.NewReader(form.Encode()))
+	request, _ := http.NewRequest("POST", "/register?username="+username+"&email="+email+"&pwd="+password+"&confirmPassword="+password2, strings.NewReader(form.Encode()))
 	response := httptest.NewRecorder()
 	server.Router.ServeHTTP(response, request)
 	return *response
@@ -90,12 +84,15 @@ func login(username string, password string, server *Server) httptest.ResponseRe
 
 func registerAndLogin(username string, password string, password2 string, email string, server *Server) httptest.ResponseRecorder {
 	// Registers and logs in in one go
-	form := url.Values{}
-	register(username, password, password2, email, server)
-	request, _ := http.NewRequest("POST", "/signin?username="+username+"&password="+password, strings.NewReader(form.Encode()))
-	response := httptest.NewRecorder()
-	server.Router.ServeHTTP(response, request)
-	return *response
+	registerForm := url.Values{}
+	registerRequest, _ := http.NewRequest("POST", "/register?username="+username+"&email="+email+"&pwd="+password+"&confirmPassword="+password2, strings.NewReader(registerForm.Encode()))
+	registerResponse := httptest.NewRecorder()
+	server.Router.ServeHTTP(registerResponse, registerRequest)
+	loginForm := url.Values{}
+	loginRequest, _ := http.NewRequest("POST", "/signin?username="+username+"&password="+password, strings.NewReader(loginForm.Encode()))
+	loginResponse := httptest.NewRecorder()
+	server.Router.ServeHTTP(loginResponse, loginRequest)
+	return *loginResponse
 }
 
 func logout(server *Server) httptest.ResponseRecorder {
