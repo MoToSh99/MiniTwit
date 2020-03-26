@@ -6,7 +6,7 @@ import requests
 from contextlib import closing
 
 
-BASE_URL = 'http://46.101.166.100:5001/'
+BASE_URL = 'http://127.0.0.1:5001'
 DATABASE = "/tmp/minitwit.db"
 USERNAME = 'simulator'
 PWD = 'super_safe!'
@@ -15,7 +15,6 @@ ENCODED_CREDENTIALS = base64.b64encode(CREDENTIALS).decode()
 HEADERS = {'Connection': 'close',
            'Content-Type': 'application/json',
            f'Authorization': f'Basic {ENCODED_CREDENTIALS}'}
-
 
 
 
@@ -183,4 +182,3 @@ def test_a_unfollows_b():
     # verify that latest was updated
     response = requests.get(f'{BASE_URL}/latest', headers=HEADERS)
     assert response.json()['latest'] == 11
-

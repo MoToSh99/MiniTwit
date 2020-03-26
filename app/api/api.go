@@ -109,6 +109,9 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: helpers.HashPassword(user.Pwd), Image_url: gravatar_url})
 
+
+		logger.Send(fmt.Sprintf(`API - User registered with username:  %v`, user.Username))
+
 	}
 
 	if !helpers.IsEmpty(error) {
@@ -139,6 +142,9 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 
 	db.Table("messages").Limit(no).Order("messages.pub_date").Select("messages.text, messages.pub_date, users.username").Joins("join users on users.user_id = messages.author_id").Scan(&postSlice)
 
+
+	logger.Send(fmt.Sprintf(`API - Sent list of messages wit limit:  %v`, no))
+
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(postSlice)
 
@@ -168,6 +174,9 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(postSlice)
 
+
+		logger.Send(fmt.Sprintf(`API - Sent list of messages for user:  %v`, vars["username"]))
+
 	} else if r.Method == http.MethodPost {
 
 		var msg Message
@@ -181,6 +190,9 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 		db := helpers.GetDB()
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
+
+
+		logger.Send(fmt.Sprintf(`API - Posted message with username:  %v`, vars["username"]))
 
 		metrics.MessagesSent.Inc()
 
@@ -229,6 +241,9 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		metrics.UsersFollowed.Inc()
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
+
+		logger.Send(fmt.Sprintf(`API - %v follows %v`, vars["username"], follows_username))
+
 	} else if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Unfollow_username) {
 		unfollows_username := follow.Unfollow_username
 		if !helpers.CheckUsernameExists(unfollows_username) {
@@ -247,6 +262,9 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
+
+		logger.Send(fmt.Sprintf(`API - %v unfollows %v `, vars["username"], unfollows_username))
+
 	} else if r.Method == http.MethodGet {
 		db := helpers.GetDB()
 
@@ -259,6 +277,9 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		for _, v := range userSlice {
 			jsonObj.ArrayAppend(helpers.GetUsernameFromID(v.Whom_id), "follows")
 		}
+
+
+		logger.Send(fmt.Sprintf(`API - List of followers sent for username: %v `, vars["username"]))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
