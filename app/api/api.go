@@ -242,7 +242,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
 
-		logger.Send(fmt.Sprintf(`API - %v follows`, vars["username"]))
+		logger.Send(fmt.Sprintf(`API - %v follows %v`, vars["username"], follows_username))
 
 	} else if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Unfollow_username) {
 		unfollows_username := follow.Unfollow_username
@@ -263,7 +263,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
 
-		logger.Send(fmt.Sprintf(`API - %v unfollows`, vars["username"]))
+		logger.Send(fmt.Sprintf(`API - %v unfollows %v `, vars["username"], unfollows_username))
 
 	} else if r.Method == http.MethodGet {
 		db := helpers.GetDB()
