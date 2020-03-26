@@ -1,0 +1,23 @@
+<!doctype html>
+<title> Welcome | MiniTwit</title>
+<link rel=stylesheet type=text/css href="/public/css/minitwit.css">
+<div class=page>
+  <h1>MiniTwit</h1>
+  <div class=navigation>
+    {{if .loggedin}}
+    <a href="/personaltimeline">My Timeline</a> |
+    <a href="/publictimeline">Public Timeline</a> |
+    <a href="/signout">Sign out</a>
+    {{else}}
+    <a href="/publictimeline">Public Timeline</a> |
+    <a href="/register">Sign up</a> |
+    <a href="/signin">Sign In</a>
+    {{end}}
+  </div>
+  <div class=body>
+    {{ template "content" . }}
+  </div>
+  <div class=footer>
+    MiniTwit &mdash; A Gorilla Application
+  </div>
+</div>

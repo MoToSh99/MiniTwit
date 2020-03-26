@@ -12,18 +12,20 @@ RUN go get github.com/jinzhu/gorm/dialects/mssql
 RUN go get github.com/prometheus/client_golang/prometheus
 RUN go get github.com/prometheus/client_golang/prometheus/promauto
 RUN go get github.com/prometheus/client_golang/prometheus/promhttp
+RUN go get github.com/alecthomas/template
+RUN go get github.com/swaggo/http-swagger
+RUN go get github.com/bshuster-repo/logrus-logstash-hook
+RUN go get github.com/sirupsen/logrus
 
 
 WORKDIR /src
 
-COPY . .
+COPY /app .
 
 EXPOSE 5000
 EXPOSE 5001
-EXPOSE 3000
-EXPOSE 9090
 
 
-RUN go build /src/server.go
+RUN go build /src/main.go
 
-CMD ["/src/server"]
+CMD ["/src/main"]

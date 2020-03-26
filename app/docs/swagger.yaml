@@ -1,0 +1,47 @@
+host: localhost:5001
+info:
+  contact:
+    email: dallasmaxwell@outlook.com
+    name: API Support
+  description: Swagger API for Golang Project MiniTwit.
+  license:
+    name: Apache 2.0
+  termsOfService: http://swagger.io/terms/
+  title: MiniTwit Swagger API
+  version: "1.0"
+paths:
+  /latest:
+    get:
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Returns latest accepted id by api
+      summary: Get latest accepted id
+  /register:
+    post:
+      parameters:
+      - description: User Name
+        in: path
+        name: name
+        required: true
+        type: string
+      - description: Email
+        in: path
+        name: email
+        required: true
+        type: string
+      - description: Password
+        in: path
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: User registered
+        "400":
+          description: Error on insert with description
+      summary: Post new user to register
+swagger: "2.0"

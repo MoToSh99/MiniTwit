@@ -1,0 +1,23 @@
+{{ define "title" }}Contact{{ end }}
+
+{{ define "content" }}
+
+<h1>Public Timeline</h1>
+<ul class=messages>
+    {{if eq 0 .postSliceLength}}
+    <li><em>There's no message so far.</em>
+    {{else}}
+      {{ range .postSlice }}
+      <li><img height="48" width="48" src="{{.Image_url}}"><p>
+        <strong><a href="/{{.Username}}">{{ .Username}}</a></strong>
+        {{ .Text }}
+        <small>&mdash; {{ .Pub_date }}</small>
+        {{ end }}
+      <!--  {{if .showMoreActive}}
+        <button><a href="/publictimeline/more" style="text-decoration: none;">Show more</a></button>
+    {{ end }}--> 
+
+    </ul>
+    {{ end }}
+{{ end }}
+
