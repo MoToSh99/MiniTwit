@@ -70,7 +70,7 @@ func GetAllPosts() []Post {
 	db := GetDB()
 
 	var postSlice []Post
-	db.Table("messages").Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0").Scan(&postSlice)
+	db.Table("messages").Offset(10).Limit(10).Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0").Scan(&postSlice)
 
 	return postSlice
 }
