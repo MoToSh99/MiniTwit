@@ -1,0 +1,464 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "Fuldsmadder Minitwit Simualtor API",
+      "description": "Fuldsmadder swag",
+      "version": "1.0.0"
+    },
+    "servers": [
+      {
+        "url": "/"
+      }
+    ],
+    "paths": {
+      "/simulator/latest": {
+        "get": {
+          "summary": "Get latest accepted id",
+          "responses": {
+            "200": {
+              "description": "returns latest accepted id by api",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/LatestResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/simulator/register": {
+        "post": {
+          "summary": "Post new user to register",
+          "parameters": [
+            {
+              "name": "latest",
+              "in": "query",
+              "description": "latest id sent by simulator api",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "$ref": "#/components/requestBodies/RegisterUserBody"
+          },
+          "responses": {
+            "204": {
+              "description": "User registered"
+            },
+            "400": {
+              "description": "Error with provided data",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ErrorMsgResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/simulator/msgs": {
+        "get": {
+          "summary": "Get posted messages",
+          "parameters": [
+            {
+              "name": "no",
+              "in": "query",
+              "description": "Number of messages to return",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            },
+            {
+              "name": "latest",
+              "in": "query",
+              "description": "latest id sent by simulator api",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "OK",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "array",
+                    "items": {
+                      "$ref": "#/components/schemas/ListOfTweetResponse"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/simulator/msgs/{username}": {
+        "get": {
+          "summary": "Find messages by username",
+          "description": "Returns messages by username",
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "author username of messages",
+              "required": true,
+              "style": "simple",
+              "explode": false,
+              "schema": {
+                "type": "string",
+                "example": "username"
+              }
+            },
+            {
+              "name": "no",
+              "in": "query",
+              "description": "max number of messages returned",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            },
+            {
+              "name": "latest",
+              "in": "query",
+              "description": "latest id sent by simulator api",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "successful operation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/ListOfTweetResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found"
+            }
+          }
+        },
+        "post": {
+          "summary": "Post message by username",
+          "description": "Creates a message with the username as author",
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "username which will be the author of the message",
+              "required": true,
+              "style": "simple",
+              "explode": false,
+              "schema": {
+                "type": "string",
+                "example": "jussiadler"
+              }
+            },
+            {
+              "name": "latest",
+              "in": "query",
+              "description": "latest id sent by simulator api",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "$ref": "#/components/requestBodies/TweetRequest"
+          },
+          "responses": {
+            "204": {
+              "description": "Successful creation"
+            },
+            "404": {
+              "description": "User not found"
+            }
+          }
+        }
+      },
+      "/simulator/fllws/{username}": {
+        "get": {
+          "summary": "Find the followers of a user",
+          "description": "Returns user ids of the users that follows the provided username",
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "find followers of this username",
+              "required": true,
+              "style": "simple",
+              "explode": false,
+              "schema": {
+                "type": "string",
+                "example": "usernametestboi"
+              }
+            },
+            {
+              "name": "no",
+              "in": "query",
+              "description": "the max number of followers retrieved",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            },
+            {
+              "name": "latest",
+              "in": "query",
+              "description": "latest id sent by simulator api",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "successful operation",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/Follower"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found"
+            }
+          }
+        },
+        "post": {
+          "summary": "Follows or unfollows a user",
+          "description": "Set a user as a follower of a provided user or unfollows",
+          "parameters": [
+            {
+              "name": "username",
+              "in": "path",
+              "description": "username of the user that wants to follow another user (or unfollow)",
+              "required": true,
+              "style": "simple",
+              "explode": false,
+              "schema": {
+                "type": "string",
+                "example": "dockerberg12"
+              }
+            },
+            {
+              "name": "latest",
+              "in": "query",
+              "description": "latest id sent by simulator api",
+              "required": true,
+              "style": "form",
+              "explode": true,
+              "schema": {
+                "type": "integer"
+              }
+            }
+          ],
+          "requestBody": {
+            "$ref": "#/components/requestBodies/FollowRequest"
+          },
+          "responses": {
+            "204": {
+              "description": "successful operation"
+            },
+            "404": {
+              "description": "User not found"
+            },
+            "500": {
+              "description": "User is already following the user"
+            }
+          }
+        }
+      }
+    },
+    "components": {
+      "schemas": {
+        "LatestResponse": {
+          "required": [
+            "latest"
+          ],
+          "type": "object",
+          "properties": {
+            "latest": {
+              "type": "integer",
+              "example": 23592
+            }
+          }
+        },
+        "ErrorMsgResponse": {
+          "required": [
+            "error_msg",
+            "Status"
+          ],
+          "type": "object",
+          "properties": {
+            "Status": {
+              "type": "integer",
+              "example": 400
+            },
+            "error_msg": {
+              "type": "string",
+              "example": "error text"
+            }
+          }
+        },
+        "TweetResponse": {
+          "required": [
+            "Content",
+            "Pub_date",
+            "User"
+          ],
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string",
+              "example": "MESSAGE!!11oneone"
+            },
+            "pub_date": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "user": {
+              "type": "string",
+              "example": "Maaads"
+            }
+          }
+        },
+        "ListOfTweetResponse": {
+          "$ref": "#/components/schemas/TweetResponse"
+        },
+        "TweetRequest": {
+          "required": [
+            "content"
+          ],
+          "type": "object",
+          "properties": {
+            "content": {
+              "type": "string",
+              "example": "lorem ipsum lars lars lars"
+            }
+          }
+        },
+        "Follower": {
+          "type": "object",
+          "properties": {
+            "WhoId": {
+              "type": "integer",
+              "example": 2
+            },
+            "WhomId": {
+              "type": "integer",
+              "example": 18
+            }
+          }
+        },
+        "FollowRequest": {
+          "required": [
+            "content"
+          ],
+          "type": "object",
+          "properties": {
+            "follow": {
+              "type": "string",
+              "example": "testuser2",
+              "description": "Use if you're following"
+            },
+            "unfollow": {
+              "type": "string",
+              "example": "testuser1",
+              "description": "Use if you're unfollowing"
+            }
+          }
+        },
+        "RegisterRequest": {
+          "required": [
+            "email",
+            "pwd",
+            "username"
+          ],
+          "type": "object",
+          "properties": {
+            "username": {
+              "type": "string",
+              "example": "Mads"
+            },
+            "email": {
+              "type": "string",
+              "example": "mads@itu.dk"
+            },
+            "pwd": {
+              "type": "string",
+              "example": "password!11one"
+            }
+          }
+        }
+      },
+      "requestBodies": {
+        "FollowRequest": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FollowRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "TweetRequest": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TweetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "RegisterUserBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        }
+      }
+    }
+  }

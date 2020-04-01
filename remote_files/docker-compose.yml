@@ -14,3 +14,13 @@ services:
     ports:
         - '5000:5000'
         - '5001:5001'
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: "swagger-ui"
+    ports:
+      - "5002:8080"
+    volumes:
+      - ../app/swagger/openapi.json:/openapi.json
+    environment:
+      SWAGGER_JSON: /openapi.json
