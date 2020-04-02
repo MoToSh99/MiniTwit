@@ -20,19 +20,6 @@ import (
 )
 
 
-func GetConnString() string {
-
-	var server = "minitwitserver.database.windows.net"
-	var port = 1433
-	var user = "Minitwit"
-	var password = "ITU2020!"
-	var database = "minitwitdb"
-
-	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
-	return connString
-}
-
 func GetDB() *gorm.DB {
 	return db
 }
@@ -64,6 +51,7 @@ func InitDB() *gorm.DB {
 }
 
 var db *gorm.DB
+var err error
 
 var gLATEST = 0
 
