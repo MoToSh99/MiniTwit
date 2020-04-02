@@ -45,7 +45,7 @@ func InitDB() *gorm.DB {
 	var port = 1433
 	var user = "Minitwit"
 	var password = "ITU2020!"
-	var database = "minitwitdb"
+	var database = "publicDB"
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
 		server, user, password, port, database)
