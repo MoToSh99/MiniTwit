@@ -8,28 +8,44 @@ import (
 	"strings"
 	"time"
 
+	c "../config"
 	helpers "../helpers"
+	logger "../logger"
 	metrics "../metrics"
 	structs "../structs"
-	logger "../logger"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	"github.com/spf13/viper"
 )
-
 
 func GetConnString() string {
 
-	var server = "minitwitserver.database.windows.net"
-	var port = 1433
-	var user = "Minitwit"
-	var password = "ITU2020!"
-	var database = "minitwitdb"
+	// Set the file name of the configurations file
+	viper.SetConfigName("config")
+
+	// Set the path to look for the configurations file
+	viper.AddConfigPath("../")
+
+	// Enable VIPER to read Environment Variables
+	viper.AutomaticEnv()
+
+	viper.SetConfigType("yml")
+	var configuration c.Configurations
+
+	if err := viper.ReadInConfig(); err != nil {
+		fmt.Printf("Error reading config file, %s", err)
+	}
+
+	err := viper.Unmarshal(&configuration)
+	if err != nil {
+		fmt.Printf("Unable to decode into struct, %v", err)
+	}
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
+		viper.GetString("server.addr"), viper.GetString("database.user"), viper.GetString("database.password"), viper.GetInt("server.port"), viper.GetString("database.name_priv"))
 	return connString
 }
 
@@ -39,16 +55,9 @@ func GetDB() *gorm.DB {
 
 func InitDB() *gorm.DB {
 
-	var server = "minitwitserver.database.windows.net"
-	var port = 1433
-	var user = "Minitwit"
-	var password = "ITU2020!"
-	var database = "minitwitdb"
+	var connString = GetConnString()
 
-	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
-
-	db, err = gorm.Open("mssql", connString)
+	db, err := gorm.Open("mssql", connString)
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
 	//db.DB().SetMaxIdleConns(0)
 
@@ -107,9 +116,8 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf(`{"latest": %v}`, gLATEST)))
 	logger.Send(fmt.Sprintf(`API - Sent latest value:  %v`, gLATEST))
 	elapsed := time.Since(start)
-	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
 }
-
 
 // Register godoc
 // @Summary Post new user to register
@@ -153,7 +161,6 @@ func Register(w http.ResponseWriter, r *http.Request) {
 
 		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: helpers.HashPassword(user.Pwd), Image_url: gravatar_url})
 
-
 		logger.Send(fmt.Sprintf(`API - User registered with username:  %v`, user.Username))
 
 	}
@@ -165,7 +172,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 	}
 	elapsed := time.Since(start)
-	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 type Post struct {
@@ -186,14 +193,13 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 
 	db.Table("messages").Limit(no).Order("messages.pub_date").Select("messages.text, messages.pub_date, users.username").Joins("join users on users.user_id = messages.author_id").Scan(&postSlice)
 
-
 	logger.Send(fmt.Sprintf(`API - Sent list of messages wit limit:  %v`, no))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(postSlice)
 
 	elapsed := time.Since(start)
-	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 func Messages_per_user(w http.ResponseWriter, r *http.Request) {
@@ -218,7 +224,6 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(postSlice)
 
-
 		logger.Send(fmt.Sprintf(`API - Sent list of messages for user:  %v`, vars["username"]))
 
 	} else if r.Method == http.MethodPost {
@@ -235,7 +240,6 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
 
-
 		logger.Send(fmt.Sprintf(`API - Posted message with username:  %v`, vars["username"]))
 
 		metrics.MessagesSent.Inc()
@@ -244,7 +248,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	}
 
 	elapsed := time.Since(start)
-	metrics.ResponseTimeMsgsPerUser.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeMsgsPerUser.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 type FollowUser struct {
@@ -285,7 +289,6 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		metrics.UsersFollowed.Inc()
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
-
 		logger.Send(fmt.Sprintf(`API - %v follows %v`, vars["username"], follows_username))
 
 	} else if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Unfollow_username) {
@@ -306,7 +309,6 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
-
 		logger.Send(fmt.Sprintf(`API - %v unfollows %v `, vars["username"], unfollows_username))
 
 	} else if r.Method == http.MethodGet {
@@ -322,7 +324,6 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			jsonObj.ArrayAppend(helpers.GetUsernameFromID(v.Whom_id), "follows")
 		}
 
-
 		logger.Send(fmt.Sprintf(`API - List of followers sent for username: %v `, vars["username"]))
 
 		w.Header().Set("Content-Type", "application/json")
@@ -331,5 +332,5 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 	}
 	elapsed := time.Since(start)
-	metrics.ResponseTimeFollow.Observe(float64(elapsed.Seconds()*1000))
+	metrics.ResponseTimeFollow.Observe(float64(elapsed.Seconds() * 1000))
 }
