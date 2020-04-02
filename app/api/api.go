@@ -19,6 +19,50 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
 
+
+func GetConnString() string {
+
+	var server = "minitwitserver.database.windows.net"
+	var port = 1433
+	var user = "Minitwit"
+	var password = "ITU2020!"
+	var database = "minitwitdb"
+
+	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		server, user, password, port, database)
+	return connString
+}
+
+func GetDB() *gorm.DB {
+	return db
+}
+
+func InitDB() *gorm.DB {
+
+	var server = "minitwitserver.database.windows.net"
+	var port = 1433
+	var user = "Minitwit"
+	var password = "ITU2020!"
+	var database = "minitwitdb"
+
+	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		server, user, password, port, database)
+
+	db, err = gorm.Open("mssql", connString)
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	//db.DB().SetMaxIdleConns(0)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	db.DB().SetMaxOpenConns(500)
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	return db
+
+}
+
 var db *gorm.DB
 
 var gLATEST = 0
@@ -101,7 +145,7 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 
-		db := helpers.GetDB()
+		db := GetDB()
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email) + "?&d=identicon"
 
@@ -136,7 +180,7 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 	Not_req_from_simulator(w, r)
 
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-	db := helpers.GetDB()
+	db := GetDB()
 
 	var postSlice []Post
 
@@ -164,7 +208,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		db := helpers.GetDB()
+		db := GetDB()
 		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 
 		var postSlice []Post
@@ -187,7 +231,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := helpers.GetDB()
+		db := GetDB()
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
 
@@ -237,7 +281,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := helpers.GetDB()
+		db := GetDB()
 		metrics.UsersFollowed.Inc()
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
@@ -254,7 +298,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		db := helpers.GetDB()
+		db := GetDB()
 
 		follow := structs.Follower{}
 
@@ -266,7 +310,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		logger.Send(fmt.Sprintf(`API - %v unfollows %v `, vars["username"], unfollows_username))
 
 	} else if r.Method == http.MethodGet {
-		db := helpers.GetDB()
+		db := GetDB()
 
 		userSlice := []structs.Follower{}
 
