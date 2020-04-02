@@ -1,8 +1,8 @@
 {
     "openapi": "3.0.0",
     "info": {
-      "title": "Fuldsmadder Minitwit Simualtor API",
-      "description": "Fuldsmadder swag",
+      "title": "Backstreet NoobBois Minitwit Simualtor API",
+      "description": "We want it that way",
       "version": "1.0.0"
     },
     "servers": [
