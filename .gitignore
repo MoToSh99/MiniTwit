@@ -14,3 +14,6 @@
 
 CICD/
 .vagrant/
+
+#Sensitive data
+config.yml
