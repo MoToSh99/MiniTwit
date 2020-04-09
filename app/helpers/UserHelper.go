@@ -66,21 +66,13 @@ func GetGravatarHash(g_email string) string {
 	return finalString
 }
 
-func GetAllPosts() []Post {
-	db := GetDB()
-
-	var postSlice []Post
-	db.Table("messages").Offset(10).Limit(10).Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0").Scan(&postSlice)
-
-	return postSlice
-}
 
 func GetMoreposts(numberOfPosts int) []Post {
 	db := GetDB()
 
 	var posts []structs.Message
 	
-	db.Where("flagged = ?", 0).Limit(numberOfPosts).Order("pub_date desc").Find(&ms)
+	db.Where("flagged = ?", 0).Limit(numberOfPosts).Order("pub_date desc").Find(&posts)
 	
 	var postSlice []Post
 
@@ -181,6 +173,11 @@ func PostsAmount(posts []Post) bool {
 }
 
 func CheckIfFollowed(who string, whom string) bool {
+
+	if whom == "" {
+		return false
+	}
+
 	db := GetDB()
 	output := []structs.Follower{}
 	db.Where("who_id = ? AND whom_id = ?", GetUserID(whom), GetUserID(who)).Scan(&output)
