@@ -5,7 +5,7 @@ import (
 	"time"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
-	"github.com/joho/godotenv"
+	
 	"golang.org/x/crypto/bcrypt"
 	"os"
 	"log"
@@ -26,11 +26,18 @@ func GetCurrentTime() string {
 
 func GetConnString() string {
 
-	err := godotenv.Load(".env")
 
-	if err != nil {
-		log.Printf("Error loading .env file")
-	}
+	
+	log.Printf("SERVER %v\n", os.Getenv("SERVER_ADDR"))
+
+	log.Printf("SERVER %v\n", os.Getenv("DATABASE_USER"))
+
+	log.Printf("SERVER %v\n", os.Getenv("DATABASE_PASSWORD"))
+
+	log.Printf("SERVER %v\n", os.Getenv("SERVER_PORT"))
+
+	log.Printf("SERVER %v\n", os.Getenv("DATABASE_NAME_PUB"))
+
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
 		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), os.Getenv("SERVER_PORT"), os.Getenv("DATABASE_NAME_PUB"))

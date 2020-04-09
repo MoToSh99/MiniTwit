@@ -8,8 +8,6 @@ import (
 	"strings"
 	"time"
 	"os"
-	"log"
-	"github.com/joho/godotenv"
 	helpers "../helpers"
 	logger "../logger"
 	metrics "../metrics"
@@ -23,11 +21,7 @@ import (
 
 func GetConnString() string {
 
-	err := godotenv.Load(".env")
 
-	if err != nil {
-		log.Printf("Error loading .env file")
-	}
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
 		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), os.Getenv("SERVER_PORT"), os.Getenv("DATABASE_NAME_PRIV"))

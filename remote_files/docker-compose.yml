@@ -9,7 +9,7 @@ services:
   minitwitimage:
     image: minitwitlocal
     env_file:
-    - config.env
+        - config.env
     restart: unless-stopped
     container_name: minitwit
     networks:
