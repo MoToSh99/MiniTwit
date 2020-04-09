@@ -21,11 +21,12 @@ import (
 
 func GetConnString() string {
 
-
+	port, _ := strconv.Atoi(os.Getenv("SERVER_PORT"))
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), os.Getenv("SERVER_PORT"), os.Getenv("DATABASE_NAME_PRIV"))
+		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), port, os.Getenv("DATABASE_NAME_PUB"))
 	return connString
+	
 }
 
 func GetDB() *gorm.DB {

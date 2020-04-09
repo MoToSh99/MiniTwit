@@ -8,7 +8,7 @@ import (
 	
 	"golang.org/x/crypto/bcrypt"
 	"os"
-	"log"
+	"strconv"
 )
 
 func IsEmpty(data string) bool {
@@ -27,20 +27,10 @@ func GetCurrentTime() string {
 func GetConnString() string {
 
 
-	
-	log.Printf("SERVER %v\n", os.Getenv("SERVER_ADDR"))
-
-	log.Printf("SERVER %v\n", os.Getenv("DATABASE_USER"))
-
-	log.Printf("SERVER %v\n", os.Getenv("DATABASE_PASSWORD"))
-
-	log.Printf("SERVER %v\n", os.Getenv("SERVER_PORT"))
-
-	log.Printf("SERVER %v\n", os.Getenv("DATABASE_NAME_PUB"))
-
+	port, _ := strconv.Atoi(os.Getenv("SERVER_PORT"))
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), os.Getenv("SERVER_PORT"), os.Getenv("DATABASE_NAME_PUB"))
+		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), port, os.Getenv("DATABASE_NAME_PUB"))
 	return connString
 }
 

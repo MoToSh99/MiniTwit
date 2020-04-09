@@ -7,9 +7,15 @@ networks:
 services:
 
   minitwitimage:
-    image: minitwitlocal
-    env_file:
-        - config.env
+    image: motosh/minitwitimage
+    container_name: minitwit
+    environment:
+        - SERVER_ADDR=minitwitserver.database.windows.net
+        - SERVER_PORT=1433
+        - DATABASE_NAME_PUB=publicDB
+        - DATABASE_NAME_PRIV=minitwitdb
+        - DATABASE_USER=Minitwit
+        - DATABASE_PASSWORD=ITU2020!
     restart: unless-stopped
     container_name: minitwit
     networks:
