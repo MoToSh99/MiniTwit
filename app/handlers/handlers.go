@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"net/http"
-	"github.com/gorilla/mux"
 	"fmt"
+	"net/http"
+
+	"github.com/gorilla/mux"
 
 	cookies "../cookies"
 	helpers "../helpers"
@@ -78,7 +79,6 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-
 
 	r.ParseForm()
 
