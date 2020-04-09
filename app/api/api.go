@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
-
+	"os"
 	helpers "../helpers"
 	logger "../logger"
 	metrics "../metrics"
@@ -18,6 +18,39 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 )
+
+func GetConnString() string {
+
+	port, _ := strconv.Atoi(os.Getenv("SERVER_PORT"))
+
+	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
+		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), port, os.Getenv("DATABASE_NAME_PUB"))
+	return connString
+	
+}
+
+func GetDB() *gorm.DB {
+	return db
+}
+
+func InitDB() *gorm.DB {
+
+	var connString = GetConnString()
+
+	db, err := gorm.Open("mssql", connString)
+	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
+	//db.DB().SetMaxIdleConns(0)
+
+	// SetMaxOpenConns sets the maximum number of open connections to the database.
+	db.DB().SetMaxOpenConns(500)
+
+	if err != nil {
+		panic("failed to connect database")
+	}
+
+	return db
+
+}
 
 var db *gorm.DB
 
@@ -100,13 +133,15 @@ func Register(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 
-		db := helpers.GetDB()
+		db := GetDB()
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email) + "?&d=identicon"
 
 		metrics.UsersRegistered.Inc()
 
 		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: helpers.HashPassword(user.Pwd), Image_url: gravatar_url})
+
+		logger.Send(fmt.Sprintf(`API - User registered with username:  %v`, user.Username))
 
 	}
 
@@ -138,11 +173,13 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 	Not_req_from_simulator(w, r)
 
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-	db := helpers.GetDB()
+	db := GetDB()
 
 	var postSlice []Post
 
 	db.Table("messages").Limit(no).Order("messages.pub_date").Select("messages.text, messages.pub_date, users.username").Joins("join users on users.user_id = messages.author_id").Scan(&postSlice)
+
+	logger.Send(fmt.Sprintf(`API - Sent list of messages wit limit:  %v`, no))
 
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(postSlice)
@@ -170,7 +207,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		db := helpers.GetDB()
+		db := GetDB()
 		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 
 		var postSlice []Post
@@ -179,6 +216,8 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(postSlice)
+
+		logger.Send(fmt.Sprintf(`API - Sent list of messages for user:  %v`, vars["username"]))
 
 	} else if r.Method == http.MethodPost {
 
@@ -190,9 +229,11 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := helpers.GetDB()
+		db := GetDB()
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
+
+		logger.Send(fmt.Sprintf(`API - Posted message with username:  %v`, vars["username"]))
 
 		metrics.MessagesSent.Inc()
 
@@ -237,9 +278,11 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := helpers.GetDB()
+		db := GetDB()
 		metrics.UsersFollowed.Inc()
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
+
+		logger.Send(fmt.Sprintf(`API - %v follows %v`, vars["username"], follows_username))
 
 	} else if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Unfollow_username) {
 		unfollows_username := follow.Unfollow_username
@@ -251,7 +294,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		db := helpers.GetDB()
+		db := GetDB()
 
 		follow := structs.Follower{}
 
@@ -259,8 +302,10 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
+		logger.Send(fmt.Sprintf(`API - %v unfollows %v `, vars["username"], unfollows_username))
+
 	} else if r.Method == http.MethodGet {
-		db := helpers.GetDB()
+		db := GetDB()
 
 		userSlice := []structs.Follower{}
 
@@ -271,6 +316,8 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		for _, v := range userSlice {
 			jsonObj.ArrayAppend(helpers.GetUsernameFromID(v.Whom_id), "follows")
 		}
+
+		logger.Send(fmt.Sprintf(`API - List of followers sent for username: %v `, vars["username"]))
 
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

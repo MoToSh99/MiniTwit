@@ -3,10 +3,12 @@ package helpers
 import (
 	"fmt"
 	"time"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
+	
 	"golang.org/x/crypto/bcrypt"
+	"os"
+	"strconv"
 )
 
 func IsEmpty(data string) bool {
@@ -24,14 +26,11 @@ func GetCurrentTime() string {
 
 func GetConnString() string {
 
-	var server = "minitwitserver.database.windows.net"
-	var port = 1433
-	var user = "Minitwit"
-	var password = "ITU2020!"
-	var database = "minitwitdb"
+
+	port, _ := strconv.Atoi(os.Getenv("SERVER_PORT"))
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
+		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), port, os.Getenv("DATABASE_NAME_PUB"))
 	return connString
 }
 
@@ -41,14 +40,7 @@ func GetDB() *gorm.DB {
 
 func InitDB() *gorm.DB {
 
-	var server = "minitwitserver.database.windows.net"
-	var port = 1433
-	var user = "Minitwit"
-	var password = "ITU2020!"
-	var database = "minitwitdb"
-
-	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
+	var connString = GetConnString()
 
 	db, err = gorm.Open("mssql", connString)
 	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
