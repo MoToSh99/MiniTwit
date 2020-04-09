@@ -15,5 +15,7 @@
 CICD/
 .vagrant/
 
+*.sh
 #Sensitive data
 config.yml
+config.sh

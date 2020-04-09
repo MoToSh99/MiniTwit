@@ -1,0 +1,34 @@
+
+version: '3.5'
+
+networks:
+  main:
+
+services:
+
+  minitwitimage:
+    image: motosh/minitwitimage
+    environment:
+        - SERVER_ADDR=minitwitserver.database.windows.net
+        - SERVER_PORT=1433
+        - DATABASE_NAME_PUB=publicDB
+        - DATABASE_NAME_PRIV=minitwitdb
+        - DATABASE_USER=Minitwit
+        - DATABASE_PASSWORD=ITU2020!
+    restart: unless-stopped
+    container_name: minitwit
+    networks:
+      - main
+    ports:
+        - '5000:5000'
+        - '5001:5001'
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: "swagger-ui"
+    ports:
+      - "5002:8080"
+    volumes:
+      - .openapi.json:/openapi.json
+    environment:
+      SWAGGER_JSON: /openapi.json

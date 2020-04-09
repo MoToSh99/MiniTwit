@@ -3,12 +3,12 @@ package helpers
 import (
 	"fmt"
 	"time"
-
-	c "../config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
-	"github.com/spf13/viper"
+	
 	"golang.org/x/crypto/bcrypt"
+	"os"
+	"strconv"
 )
 
 func IsEmpty(data string) bool {
@@ -25,29 +25,12 @@ func GetCurrentTime() string {
 }
 
 func GetConnString() string {
-	// Set the file name of the configurations file
-	viper.SetConfigName("config")
 
-	// Set the path to look for the configurations file
-	viper.AddConfigPath("../")
 
-	// Enable VIPER to read Environment Variables
-	viper.AutomaticEnv()
-
-	viper.SetConfigType("yml")
-	var configuration c.Configurations
-
-	if err := viper.ReadInConfig(); err != nil {
-		fmt.Printf("Error reading config file, %s", err)
-	}
-
-	err := viper.Unmarshal(&configuration)
-	if err != nil {
-		fmt.Printf("Unable to decode into struct, %v", err)
-	}
+	port, _ := strconv.Atoi(os.Getenv("SERVER_PORT"))
 
 	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		viper.GetString("server.addr"), viper.GetString("database.user"), viper.GetString("database.password"), viper.GetInt("server.port"), viper.GetString("database.name_pub"))
+		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), port, os.Getenv("DATABASE_NAME_PUB"))
 	return connString
 }
 
