@@ -78,8 +78,27 @@ func GetAllPosts() []Post {
 func GetMoreposts(numberOfPosts int) []Post {
 	db := GetDB()
 
+	var posts []structs.Message
+	
+	db.Where("flagged = ?", 0).Limit(numberOfPosts).Order("pub_date desc").Find(&ms)
+	
 	var postSlice []Post
-	db.Table("messages").Limit(10).Order("messages.pub_date desc").Select("users.username, messages.message_id, messages.author_id, messages.text, messages.pub_date, messages.flagged, users.image_url").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0").Scan(&postSlice)
+
+	for _, m := range posts {
+		if err != nil {
+			continue
+		}
+		post := Post{
+			Username:      GetUsernameFromID(m.Author_id),    
+			Message_id:	   m.Message_id,
+			Author_id:	   m.Author_id,
+			Text:          m.Text,
+			Pub_date:	   m.Pub_date,
+			Flagged:       m.Flagged,
+			Image_url:     GetImageFromID(m.Author_id),
+		}
+		postSlice = append(postSlice, post)
+	}
 	return postSlice
 }
 
