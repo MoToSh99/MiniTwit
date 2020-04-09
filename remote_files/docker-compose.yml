@@ -8,7 +8,6 @@ services:
 
   minitwitimage:
     image: motosh/minitwitimage
-    container_name: minitwit
     environment:
         - SERVER_ADDR=minitwitserver.database.windows.net
         - SERVER_PORT=1433
