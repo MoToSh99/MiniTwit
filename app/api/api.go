@@ -13,6 +13,7 @@ import (
 	logger "../logger"
 	metrics "../metrics"
 	structs "../structs"
+	handlers "../handlers"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -88,6 +89,7 @@ type Message struct {
 }
 
 func Not_req_from_simulator(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	from_simulator := r.Header.Get("Authorization")
 	if from_simulator != "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh" {
 		error := "You are not authorized to use this resource!"
@@ -97,6 +99,7 @@ func Not_req_from_simulator(res http.ResponseWriter, r *http.Request) {
 }
 
 func Update_latest(res http.ResponseWriter, req *http.Request) {
+	handlers.AddSafeHeaders(res)
 	jsonint, _ := strconv.Atoi(req.URL.Query().Get("latest"))
 	if jsonint != 0 {
 		gLATEST = jsonint
@@ -109,6 +112,7 @@ func Update_latest(res http.ResponseWriter, req *http.Request) {
 // @Success 200 "Returns latest accepted id by api"
 // @Router /latest [get]
 func Get_latest(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
 
 	res.Header().Set("Content-Type", "application/json")
@@ -129,6 +133,7 @@ func Get_latest(res http.ResponseWriter, r *http.Request) {
 // @Failure 400 "Error on insert with description"
 // @Router /register [post]
 func Register(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
 
 	Update_latest(res, r)
@@ -182,6 +187,7 @@ type Post struct {
 }
 
 func Messages(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
 	Update_latest(res, r)
 	Not_req_from_simulator(res, r)
@@ -203,6 +209,7 @@ func Messages(res http.ResponseWriter, r *http.Request) {
 }
 
 func Messages_per_user(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
 	Update_latest(res, r)
 	Not_req_from_simulator(res, r)
@@ -257,6 +264,7 @@ type FollowUser struct {
 }
 
 func Follow(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
 	Update_latest(res, r)
 	Not_req_from_simulator(res, r)

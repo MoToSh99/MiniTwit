@@ -10,8 +10,6 @@ import (
 
 var templates map[string]*template.Template
 
-
-
 func ContactRoute(res http.ResponseWriter, req *http.Request) {
 	AddSafeHeaders(res)
 	if err := templates["contact"].Execute(res, nil); err != nil {
