@@ -18,17 +18,17 @@ import (
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func GetConnString() string {
+	var connString = fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s",
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD"))
 
-	port, _ := strconv.Atoi(os.Getenv("SERVER_PORT"))
-
-	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), port, os.Getenv("DATABASE_NAME_PRIV"))
 	return connString
 	
 }
+
 
 func GetDB() *gorm.DB {
 	return db
@@ -38,12 +38,11 @@ func InitDB() *gorm.DB {
 
 	var connString = GetConnString()
 
-	db, err := gorm.Open("mssql", connString)
-	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
-	//db.DB().SetMaxIdleConns(0)
 
-	// SetMaxOpenConns sets the maximum number of open connections to the database.
-	db.DB().SetMaxOpenConns(500)
+	//db, err = gorm.Open("postgres", "host=db-postgresql-fra1-47227-do-user-6112957-0.a.db.ondigitalocean.com port=25060 user=doadmin dbname=defaultdb password=rtjnomzzo625iavx")
+
+	db, err := gorm.Open("postgres", connString)
+
 
 	if err != nil {
 		panic("failed to connect database")

@@ -1,8 +1,7 @@
 #!/bin/bash
-export SERVER_ADDR="minitwitserver.database.windows.net"
-export SERVER_PORT=1433
-export DATABASE_NAME_PUB="publicDB"
-export DATABASE_NAME_PRIV="minitwitdb"
-export DATABASE_USER="Minitwit"
-export DATABASE_PASSWORD="ITU2020!"
+export DB_USERNAME="doadmin"
+export DB_PASSWORD="ty4g5n8ayyfbo7in"
+export DB_HOST="minitwit-do-user-7349777-0.a.db.ondigitalocean.com"
+export DB_PORT="25060"
+export DB_DATABASE="defaultdb"
 
