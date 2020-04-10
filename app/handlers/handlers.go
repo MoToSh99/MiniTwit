@@ -124,7 +124,7 @@ func RegisterHandler(res http.ResponseWriter, r *http.Request) {
 		db.NewRecord(user)
 		db.Create(&user)
 
-		cookies.SetCookie(uName, w)
+		cookies.SetCookie(uName, res)
 		redirectTarget := "/personaltimeline"
 		http.Redirect(res, r, redirectTarget, 302)
 	}
