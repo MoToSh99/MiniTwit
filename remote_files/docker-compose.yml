@@ -1,4 +1,3 @@
-
 version: '3.5'
 
 networks:
@@ -8,15 +7,14 @@ services:
 
   minitwitimage:
     image: motosh/minitwitimage
-    environment:
-        - SERVER_ADDR=minitwitserver.database.windows.net
-        - SERVER_PORT=1433
-        - DATABASE_NAME_PUB=publicDB
-        - DATABASE_NAME_PRIV=minitwitdb
-        - DATABASE_USER=Minitwit
-        - DATABASE_PASSWORD=ITU2020!
-    restart: unless-stopped
     container_name: minitwit
+    environment:
+      - DB_USERNAME=doadmin
+      - DB_PASSWORD=ty4g5n8ayyfbo7in
+      - DB_HOST=minitwit-do-user-7349777-0.a.db.ondigitalocean.com
+      - DB_PORT=25060
+      - DB_DATABASE=defaultdb
+    restart: unless-stopped
     networks:
       - main
     ports:

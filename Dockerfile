@@ -17,6 +17,7 @@ RUN go get github.com/swaggo/http-swagger
 RUN go get github.com/bshuster-repo/logrus-logstash-hook
 RUN go get github.com/sirupsen/logrus
 RUN go get github.com/joho/godotenv
+RUN go get github.com/lib/pq
 
 WORKDIR /src
 

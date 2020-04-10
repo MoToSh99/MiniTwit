@@ -8,8 +8,8 @@ import (
 	
 	"golang.org/x/crypto/bcrypt"
 	"os"
-	"strconv"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
+	"log"
 )
 
 func IsEmpty(data string) bool {
@@ -27,11 +27,8 @@ func GetCurrentTime() string {
 
 func GetConnString() string {
 
-
-	port, _ := strconv.Atoi(os.Getenv("DB_PORT"))
-
 	var connString = fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s",
-		os.Getenv("DB_HOST"), port, os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD"))
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD"))
 	return connString
 }
 
@@ -42,6 +39,9 @@ func GetDB() *gorm.DB {
 func InitDB() *gorm.DB {
 
 	var connString = GetConnString()
+
+
+	log.Printf("COONSTRING %v\n", connString)
 
 	db, err = gorm.Open("postgres", connString)
 
