@@ -9,6 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"os"
 	"strconv"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func IsEmpty(data string) bool {
@@ -27,10 +28,10 @@ func GetCurrentTime() string {
 func GetConnString() string {
 
 
-	port, _ := strconv.Atoi(os.Getenv("SERVER_PORT"))
+	port, _ := strconv.Atoi(os.Getenv("DB_PORT"))
 
-	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		os.Getenv("SERVER_ADDR"), os.Getenv("DATABASE_USER"), os.Getenv("DATABASE_PASSWORD"), port, os.Getenv("DATABASE_NAME_PRIV"))
+	var connString = fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s",
+		os.Getenv("DB_HOST"), port, os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD"))
 	return connString
 }
 
@@ -42,12 +43,7 @@ func InitDB() *gorm.DB {
 
 	var connString = GetConnString()
 
-	db, err = gorm.Open("mssql", connString)
-	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
-	//db.DB().SetMaxIdleConns(0)
-
-	// SetMaxOpenConns sets the maximum number of open connections to the database.
-	db.DB().SetMaxOpenConns(500)
+	db, err = gorm.Open("postgres", connString)
 
 	if err != nil {
 		panic("failed to connect database")
