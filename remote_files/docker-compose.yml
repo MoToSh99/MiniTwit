@@ -27,6 +27,6 @@ services:
     ports:
       - "5002:8080"
     volumes:
-      - .openapi.json:/openapi.json
+      - ./openapi.json:/openapi.json
     environment:
       SWAGGER_JSON: /openapi.json
