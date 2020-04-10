@@ -18,6 +18,7 @@ HEADERS = {'Connection': 'close',
 
 
 
+
 def test_latest():
     # post something to updaet LATEST
     url = f"{BASE_URL}/register"
