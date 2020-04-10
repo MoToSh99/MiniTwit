@@ -4,7 +4,7 @@
 
 <h1>Public Timeline</h1>
 <ul class=messages>
-    {{if eq 0 .postSliceLength}}
+    {{if eq 0  (len .postSlice)}}
     <li><em>There's no message so far.</em>
     {{else}}
       {{ range .postSlice }}

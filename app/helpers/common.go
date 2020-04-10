@@ -3,10 +3,13 @@ package helpers
 import (
 	"fmt"
 	"time"
-
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
+	
 	"golang.org/x/crypto/bcrypt"
+	"os"
+	_ "github.com/jinzhu/gorm/dialects/postgres"
+
 )
 
 func IsEmpty(data string) bool {
@@ -24,14 +27,8 @@ func GetCurrentTime() string {
 
 func GetConnString() string {
 
-	var server = "minitwitserver.database.windows.net"
-	var port = 1433
-	var user = "Minitwit"
-	var password = "ITU2020!"
-	var database = "minitwitdb"
-
-	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
+	var connString = fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s",
+		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD"))
 	return connString
 }
 
@@ -41,21 +38,9 @@ func GetDB() *gorm.DB {
 
 func InitDB() *gorm.DB {
 
-	var server = "minitwitserver.database.windows.net"
-	var port = 1433
-	var user = "Minitwit"
-	var password = "ITU2020!"
-	var database = "minitwitdb"
+	var connString = GetConnString()
 
-	var connString = fmt.Sprintf("server=%s;user id=%s;password=%s;port=%d;database=%s;",
-		server, user, password, port, database)
-
-	db, err = gorm.Open("mssql", connString)
-	// SetMaxIdleConns sets the maximum number of connections in the idle connection pool.
-	//db.DB().SetMaxIdleConns(0)
-
-	// SetMaxOpenConns sets the maximum number of open connections to the database.
-	db.DB().SetMaxOpenConns(500)
+	db, err = gorm.Open("postgres", connString)
 
 	if err != nil {
 		panic("failed to connect database")

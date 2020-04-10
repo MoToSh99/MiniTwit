@@ -4,22 +4,25 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
 	api "./api"
+	_ "./docs"
 	handler "./handlers"
 	helpers "./helpers"
-	structs "./structs"
 	metrics "./metrics"
-	"github.com/swaggo/http-swagger"
+	structs "./structs"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/mssql"
 	_ "github.com/mattn/go-sqlite3"
-	_ "./docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	logger "./logger"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/unrolled/secure"
 )
+
 // @title MiniTwit Swagger API
 // @version 1.0
 // @description Swagger API for Golang Project MiniTwit.
@@ -31,7 +34,7 @@ import (
 // @license.name Apache 2.0
 // @host localhost:5001
 
-// @BasePath 
+// @BasePath
 
 var db *gorm.DB
 
@@ -45,7 +48,6 @@ var metricsMonitor = metrics.Combine(
 	metrics.HTTPRequestCountMonitor,
 )
 
-
 func main() {
 
 	db := helpers.InitDB()
@@ -53,12 +55,15 @@ func main() {
 
 	db.AutoMigrate(&structs.User{}, &structs.Follower{}, &structs.Message{})
 
+	secureMiddleware := secure.New(secure.Options{
+		FrameDeny: true,
+	})
 	router := mux.NewRouter()
+	router.Use(secureMiddleware.Handler)
 
 	router.Handle("/metrics", promhttp.Handler())
 
 	router.HandleFunc("/favicon.ico", faviconHandler)
-
 
 	router.PathPrefix("/public/").Handler(http.StripPrefix("/public/", http.FileServer(http.Dir("public/"))))
 	router.HandleFunc("/", handler.PublicTimelineRoute).Methods("GET")
@@ -78,10 +83,7 @@ func main() {
 
 	router.HandleFunc("/publictimeline", handler.PublicTimelineRoute).Methods("GET")
 
-	router.HandleFunc("/publictimeline/more", handler.PublicTimelineLoadMore).Methods("GET")
-
 	router.HandleFunc("/{username}", handler.UserpageRoute).Methods("GET")
-
 	router.HandleFunc("/{username}/follow", handler.UserFollowHandler)
 	router.HandleFunc("/{username}/unfollow", handler.UserUnfollowHandler)
 
@@ -93,7 +95,6 @@ func main() {
 	apiRoute.HandleFunc("/msgs/{username}", metricsMonitor(api.Messages_per_user))
 	apiRoute.HandleFunc("/fllws/{username}", metricsMonitor(api.Follow))
 
-	
 	//localhost:5001/docs/ Remember last backslash
 	//Prøver at tage udgangspunkt i https://github.com/swaggo/http-swagger
 	apiRoute.PathPrefix("/docs").Handler(httpSwagger.WrapHandler)

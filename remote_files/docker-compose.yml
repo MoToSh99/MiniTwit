@@ -1,0 +1,32 @@
+version: '3.5'
+
+networks:
+  main:
+
+services:
+
+  minitwitimage:
+    image: minitwitlocal
+    container_name: minitwit
+    environment:
+      - DB_USERNAME=doadmin
+      - DB_PASSWORD=ty4g5n8ayyfbo7in
+      - DB_HOST=minitwit-do-user-7349777-0.a.db.ondigitalocean.com
+      - DB_PORT=25060
+      - DB_DATABASE=defaultdb
+    restart: unless-stopped
+    networks:
+      - main
+    ports:
+        - '5000:5000'
+        - '5001:5001'
+
+  swagger-ui:
+    image: swaggerapi/swagger-ui
+    container_name: "swagger-ui"
+    ports:
+      - "5002:8080"
+    volumes:
+      - .openapi.json:/openapi.json
+    environment:
+      SWAGGER_JSON: /openapi.json
