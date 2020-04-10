@@ -18,6 +18,7 @@ RUN go get github.com/bshuster-repo/logrus-logstash-hook
 RUN go get github.com/sirupsen/logrus
 RUN go get github.com/joho/godotenv
 RUN go get github.com/lib/pq
+RUN go get github.com/unrolled/secure
 
 WORKDIR /src
 
