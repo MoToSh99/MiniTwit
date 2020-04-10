@@ -87,7 +87,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
+func RegisterHandler(res http.ResponseWriter, r *http.Request) {
 	AddSafeHeaders(res)
 	r.ParseForm()
 
@@ -126,23 +126,23 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 		cookies.SetCookie(uName, w)
 		redirectTarget := "/personaltimeline"
-		http.Redirect(w, r, redirectTarget, 302)
+		http.Redirect(res, r, redirectTarget, 302)
 	}
-	ShowSignUpError(w, r, errorMsg)
+	ShowSignUpError(res, r, errorMsg)
 
 }
 
-func ShowSignUpError(w http.ResponseWriter, r *http.Request, errorMsg string) {
+func ShowSignUpError(res http.ResponseWriter, r *http.Request, errorMsg string) {
 	AddSafeHeaders(res)
-	if err := templates["signup"].Execute(w, map[string]interface{}{
+	if err := templates["signup"].Execute(res, map[string]interface{}{
 		"error":           true,
 		"FlashedMessages": errorMsg,
 	}); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func LoginHandler(response http.ResponseWriter, request *http.Request) {
+func LoginHandler(res http.ResponseWriter, request *http.Request) {
 	AddSafeHeaders(res)
 	request.ParseForm()
 	name := request.FormValue("username")
@@ -157,13 +157,13 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
 		_userIsValid := helpers.UserIsValid(name, pass)
 
 		if _userIsValid {
-			cookies.SetCookie(name, response)
+			cookies.SetCookie(name, res)
 			redirectTarget = "/"
 		} else {
 			redirectTarget = "/register"
 		}
 	}
-	http.Redirect(response, request, redirectTarget, 302)
+	http.Redirect(res, request, redirectTarget, 302)
 }
 
 func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
@@ -187,8 +187,8 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 	PersonalTimelineRoute(res, req)
 }
 
-func LogoutHandler(response http.ResponseWriter, request *http.Request) {
+func LogoutHandler(res http.ResponseWriter, request *http.Request) {
 	AddSafeHeaders(res)
-	cookies.ClearCookie(response)
-	http.Redirect(response, request, "/", 302)
+	cookies.ClearCookie(res)
+	http.Redirect(res, request, "/", 302)
 }
