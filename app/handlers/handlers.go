@@ -46,7 +46,15 @@ type message struct {
 	flagged    int
 }
 
+func AddSafeHeaders(w http.ResponseWriter) {
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
+	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+	w.Header().Set("Strict-Transport-Security", "max-age=2592000; includeSubDomains")
+}
+
 func UserFollowHandler(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	if helpers.IsEmpty(helpers.GetUserName(req)) {
 
 		res.WriteHeader(http.StatusUnauthorized)
@@ -63,6 +71,7 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	if helpers.IsEmpty(helpers.GetUserName(req)) {
 		res.WriteHeader(http.StatusUnauthorized)
 	}
@@ -79,7 +88,7 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-
+	AddSafeHeaders(res)
 	r.ParseForm()
 
 	uName := r.FormValue("username")
@@ -124,6 +133,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func ShowSignUpError(w http.ResponseWriter, r *http.Request, errorMsg string) {
+	AddSafeHeaders(res)
 	if err := templates["signup"].Execute(w, map[string]interface{}{
 		"error":           true,
 		"FlashedMessages": errorMsg,
@@ -133,6 +143,7 @@ func ShowSignUpError(w http.ResponseWriter, r *http.Request, errorMsg string) {
 }
 
 func LoginHandler(response http.ResponseWriter, request *http.Request) {
+	AddSafeHeaders(res)
 	request.ParseForm()
 	name := request.FormValue("username")
 	pass := request.FormValue("password")
@@ -156,6 +167,7 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
 }
 
 func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	req.ParseForm()
 
 	text := req.FormValue("text")
@@ -176,6 +188,7 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func LogoutHandler(response http.ResponseWriter, request *http.Request) {
+	AddSafeHeaders(res)
 	cookies.ClearCookie(response)
 	http.Redirect(response, request, "/", 302)
 }
