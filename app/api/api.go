@@ -12,6 +12,7 @@ import (
 	logger "../logger"
 	metrics "../metrics"
 	structs "../structs"
+	handlers "../handlers"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -21,9 +22,9 @@ import (
 )
 
 func GetConnString() string {
-
 	var connString = fmt.Sprintf("host=%s port=%s user=%s dbname=%s password=%s",
 		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD"))
+
 	return connString
 	
 }
@@ -66,16 +67,18 @@ type Message struct {
 	Text     string `json:"content"`
 }
 
-func Not_req_from_simulator(w http.ResponseWriter, r *http.Request) {
+func Not_req_from_simulator(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	from_simulator := r.Header.Get("Authorization")
 	if from_simulator != "Basic c2ltdWxhdG9yOnN1cGVyX3NhZmUh" {
 		error := "You are not authorized to use this resource!"
-		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(fmt.Sprintf(`{"status": 403, "error_msg": %v}`, error)))
+		res.WriteHeader(http.StatusForbidden)
+		res.Write([]byte(fmt.Sprintf(`{"status": 403, "error_msg": %v}`, error)))
 	}
 }
 
 func Update_latest(res http.ResponseWriter, req *http.Request) {
+	handlers.AddSafeHeaders(res)
 	jsonint, _ := strconv.Atoi(req.URL.Query().Get("latest"))
 	if jsonint != 0 {
 		gLATEST = jsonint
@@ -87,12 +90,13 @@ func Update_latest(res http.ResponseWriter, req *http.Request) {
 // @Produce json
 // @Success 200 "Returns latest accepted id by api"
 // @Router /latest [get]
-func Get_latest(w http.ResponseWriter, r *http.Request) {
+func Get_latest(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
 
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(fmt.Sprintf(`{"latest": %v}`, gLATEST)))
+	res.Header().Set("Content-Type", "application/json")
+	res.WriteHeader(http.StatusOK)
+	res.Write([]byte(fmt.Sprintf(`{"latest": %v}`, gLATEST)))
 	logger.Send(fmt.Sprintf(`API - Sent latest value:  %v`, gLATEST))
 	elapsed := time.Since(start)
 	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
@@ -107,17 +111,18 @@ func Get_latest(w http.ResponseWriter, r *http.Request) {
 // @Success 204 "User registered"
 // @Failure 400 "Error on insert with description"
 // @Router /register [post]
-func Register(w http.ResponseWriter, r *http.Request) {
+func Register(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
 
-	Update_latest(w, r)
+	Update_latest(res, r)
 
 	var user User
 
 	var error = ""
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(res, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -145,10 +150,10 @@ func Register(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !helpers.IsEmpty(error) {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(fmt.Sprintf(`{"status": 400, "error_msg": %v}`, error)))
+		res.WriteHeader(http.StatusBadRequest)
+		res.Write([]byte(fmt.Sprintf(`{"status": 400, "error_msg": %v}`, error)))
 	} else {
-		w.WriteHeader(http.StatusNoContent)
+		res.WriteHeader(http.StatusNoContent)
 	}
 	elapsed := time.Since(start)
 	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
@@ -160,10 +165,11 @@ type Post struct {
 	Username string `json:"user"`
 }
 
-func Messages(w http.ResponseWriter, r *http.Request) {
+func Messages(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
-	Update_latest(w, r)
-	Not_req_from_simulator(w, r)
+	Update_latest(res, r)
+	Not_req_from_simulator(res, r)
 
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 	db := GetDB()
@@ -174,21 +180,22 @@ func Messages(w http.ResponseWriter, r *http.Request) {
 
 	logger.Send(fmt.Sprintf(`API - Sent list of messages wit limit:  %v`, no))
 
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(postSlice)
+	res.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(res).Encode(postSlice)
 
 	elapsed := time.Since(start)
 	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Seconds() * 1000))
 }
 
-func Messages_per_user(w http.ResponseWriter, r *http.Request) {
+func Messages_per_user(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
-	Update_latest(w, r)
-	Not_req_from_simulator(w, r)
+	Update_latest(res, r)
+	Not_req_from_simulator(res, r)
 	vars := mux.Vars(r)
 
 	if !helpers.CheckUsernameExists(vars["username"]) {
-		w.WriteHeader(http.StatusNotFound)
+		res.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -200,8 +207,8 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 
 		db.Table("messages").Limit(no).Order("messages.pub_date").Select("messages.text, messages.pub_date, users.username").Joins("join users on users.user_id = messages.author_id").Where("messages.flagged = 0 AND users.username = ?", vars["username"]).Scan(&postSlice)
 
-		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(postSlice)
+		res.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(res).Encode(postSlice)
 
 		logger.Send(fmt.Sprintf(`API - Sent list of messages for user:  %v`, vars["username"]))
 
@@ -211,7 +218,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 
 		err := json.NewDecoder(r.Body).Decode(&msg)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}
 
@@ -223,7 +230,7 @@ func Messages_per_user(w http.ResponseWriter, r *http.Request) {
 
 		metrics.MessagesSent.Inc()
 
-		w.WriteHeader(http.StatusNoContent)
+		res.WriteHeader(http.StatusNoContent)
 	}
 
 	elapsed := time.Since(start)
@@ -235,10 +242,11 @@ type FollowUser struct {
 	Unfollow_username string `json:"unfollow"`
 }
 
-func Follow(w http.ResponseWriter, r *http.Request) {
+func Follow(res http.ResponseWriter, r *http.Request) {
+	handlers.AddSafeHeaders(res)
 	start := time.Now()
-	Update_latest(w, r)
-	Not_req_from_simulator(w, r)
+	Update_latest(res, r)
+	Not_req_from_simulator(res, r)
 	vars := mux.Vars(r)
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 	var follow FollowUser
@@ -246,13 +254,13 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	if r.Body != http.NoBody {
 		err := json.NewDecoder(r.Body).Decode(&follow)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}
 	}
 
 	if !helpers.CheckUsernameExists(vars["username"]) {
-		w.WriteHeader(http.StatusNotFound)
+		res.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -260,7 +268,7 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 		follows_username := follow.Follows_username
 
 		if !helpers.CheckUsernameExists(follows_username) {
-			w.WriteHeader(http.StatusNotFound)
+			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 
@@ -273,11 +281,11 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 	} else if r.Method == http.MethodPost && !helpers.IsEmpty(follow.Unfollow_username) {
 		unfollows_username := follow.Unfollow_username
 		if !helpers.CheckUsernameExists(unfollows_username) {
-			w.WriteHeader(http.StatusNotFound)
+			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 		if !helpers.CheckUsernameExists(unfollows_username) {
-			w.WriteHeader(http.StatusNotFound)
+			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 		db := GetDB()
@@ -305,9 +313,9 @@ func Follow(w http.ResponseWriter, r *http.Request) {
 
 		logger.Send(fmt.Sprintf(`API - List of followers sent for username: %v `, vars["username"]))
 
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprintln(w, jsonObj.StringIndent("", "  "))
+		res.Header().Set("Content-Type", "application/json")
+		res.WriteHeader(http.StatusOK)
+		fmt.Fprintln(res, jsonObj.StringIndent("", "  "))
 
 	}
 	elapsed := time.Since(start)

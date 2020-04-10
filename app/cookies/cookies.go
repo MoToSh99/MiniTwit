@@ -9,7 +9,7 @@ var CookieHandler = securecookie.New(
     securecookie.GenerateRandomKey(64),
 	securecookie.GenerateRandomKey(32))
 
-func SetCookie(userName string, response http.ResponseWriter) {
+func SetCookie(userName string, res http.ResponseWriter) {
 	value := map[string]string{
 		"name": userName,
 	}
@@ -19,16 +19,16 @@ func SetCookie(userName string, response http.ResponseWriter) {
 			Value: encoded,
 			Path:  "/",
 		}
-		http.SetCookie(response, cookie)
+		http.SetCookie(res, cookie)
 	}
 }
 	
-func ClearCookie(response http.ResponseWriter) {
+func ClearCookie(res http.ResponseWriter) {
 	cookie := &http.Cookie{
 		Name:   "cookie",
 		Value:  "",
 		Path:   "/",
 		MaxAge: -1,
 	}
-	http.SetCookie(response, cookie)
+	http.SetCookie(res, cookie)
 }
