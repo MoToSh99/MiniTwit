@@ -9,7 +9,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"os"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
-	"log"
+
 )
 
 func IsEmpty(data string) bool {
@@ -39,9 +39,6 @@ func GetDB() *gorm.DB {
 func InitDB() *gorm.DB {
 
 	var connString = GetConnString()
-
-
-	log.Printf("COONSTRING %v\n", connString)
 
 	db, err = gorm.Open("postgres", connString)
 

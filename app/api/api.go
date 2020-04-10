@@ -26,7 +26,6 @@ func GetConnString() string {
 		os.Getenv("DB_HOST"), os.Getenv("DB_PORT"), os.Getenv("DB_USERNAME"), os.Getenv("DB_DATABASE"), os.Getenv("DB_PASSWORD"))
 
 	return connString
-	
 }
 
 
@@ -37,9 +36,6 @@ func GetDB() *gorm.DB {
 func InitDB() *gorm.DB {
 
 	var connString = GetConnString()
-
-
-	//db, err = gorm.Open("postgres", "host=db-postgresql-fra1-47227-do-user-6112957-0.a.db.ondigitalocean.com port=25060 user=doadmin dbname=defaultdb password=rtjnomzzo625iavx")
 
 	db, err := gorm.Open("postgres", connString)
 

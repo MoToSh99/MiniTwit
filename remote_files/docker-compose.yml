@@ -6,7 +6,7 @@ networks:
 services:
 
   minitwitimage:
-    image: motosh/minitwitimage
+    image: minitwitlocal
     container_name: minitwit
     environment:
       - DB_USERNAME=doadmin
