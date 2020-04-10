@@ -10,12 +10,7 @@ import (
 
 var templates map[string]*template.Template
 
-func AddSafeHeaders(w http.ResponseWriter) {
-	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("X-XSS-Protection", "1; mode=block")
-	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	w.Header().Set("Strict-Transport-Security", "max-age=2592000; includeSubDomains")
-}
+
 
 func ContactRoute(res http.ResponseWriter, req *http.Request) {
 	AddSafeHeaders(res)
