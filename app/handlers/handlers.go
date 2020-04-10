@@ -1,9 +1,10 @@
 package handlers
 
 import (
-	"net/http"
-	"github.com/gorilla/mux"
 	"fmt"
+	"net/http"
+
+	"github.com/gorilla/mux"
 
 	cookies "../cookies"
 	helpers "../helpers"
@@ -45,7 +46,15 @@ type message struct {
 	flagged    int
 }
 
+func AddSafeHeaders(w http.ResponseWriter) {
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("X-XSS-Protection", "1; mode=block")
+	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+	w.Header().Set("Strict-Transport-Security", "max-age=2592000; includeSubDomains")
+}
+
 func UserFollowHandler(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	if helpers.IsEmpty(helpers.GetUserName(req)) {
 
 		res.WriteHeader(http.StatusUnauthorized)
@@ -62,6 +71,7 @@ func UserFollowHandler(res http.ResponseWriter, req *http.Request) {
 }
 
 func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	if helpers.IsEmpty(helpers.GetUserName(req)) {
 		res.WriteHeader(http.StatusUnauthorized)
 	}
@@ -77,9 +87,8 @@ func UserUnfollowHandler(res http.ResponseWriter, req *http.Request) {
 
 }
 
-func RegisterHandler(w http.ResponseWriter, r *http.Request) {
-
-
+func RegisterHandler(res http.ResponseWriter, r *http.Request) {
+	AddSafeHeaders(res)
 	r.ParseForm()
 
 	uName := r.FormValue("username")
@@ -115,24 +124,26 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 		db.NewRecord(user)
 		db.Create(&user)
 
-		cookies.SetCookie(uName, w)
+		cookies.SetCookie(uName, res)
 		redirectTarget := "/personaltimeline"
-		http.Redirect(w, r, redirectTarget, 302)
+		http.Redirect(res, r, redirectTarget, 302)
 	}
-	ShowSignUpError(w, r, errorMsg)
+	ShowSignUpError(res, r, errorMsg)
 
 }
 
-func ShowSignUpError(w http.ResponseWriter, r *http.Request, errorMsg string) {
-	if err := templates["signup"].Execute(w, map[string]interface{}{
+func ShowSignUpError(res http.ResponseWriter, r *http.Request, errorMsg string) {
+	AddSafeHeaders(res)
+	if err := templates["signup"].Execute(res, map[string]interface{}{
 		"error":           true,
 		"FlashedMessages": errorMsg,
 	}); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func LoginHandler(response http.ResponseWriter, request *http.Request) {
+func LoginHandler(res http.ResponseWriter, request *http.Request) {
+	AddSafeHeaders(res)
 	request.ParseForm()
 	name := request.FormValue("username")
 	pass := request.FormValue("password")
@@ -146,16 +157,17 @@ func LoginHandler(response http.ResponseWriter, request *http.Request) {
 		_userIsValid := helpers.UserIsValid(name, pass)
 
 		if _userIsValid {
-			cookies.SetCookie(name, response)
+			cookies.SetCookie(name, res)
 			redirectTarget = "/"
 		} else {
 			redirectTarget = "/register"
 		}
 	}
-	http.Redirect(response, request, redirectTarget, 302)
+	http.Redirect(res, request, redirectTarget, 302)
 }
 
 func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	req.ParseForm()
 
 	text := req.FormValue("text")
@@ -175,7 +187,8 @@ func PersonalTimelineHandler(res http.ResponseWriter, req *http.Request) {
 	PersonalTimelineRoute(res, req)
 }
 
-func LogoutHandler(response http.ResponseWriter, request *http.Request) {
-	cookies.ClearCookie(response)
-	http.Redirect(response, request, "/", 302)
+func LogoutHandler(res http.ResponseWriter, request *http.Request) {
+	AddSafeHeaders(res)
+	cookies.ClearCookie(res)
+	http.Redirect(res, request, "/", 302)
 }

@@ -1,134 +1,130 @@
 package handlers
 
-
 import (
-	"net/http"
 	"html/template"
-	"github.com/gorilla/mux"
+	"net/http"
+
 	helper "../helpers"
+	"github.com/gorilla/mux"
 )
 
-	
 var templates map[string]*template.Template
 
-
 func ContactRoute(res http.ResponseWriter, req *http.Request) {
-
+	AddSafeHeaders(res)
 	if err := templates["contact"].Execute(res, nil); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func SigninRoute(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	if err := templates["signin"].Execute(res, nil); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func SignupRoute(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	if err := templates["signup"].Execute(res, nil); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-
 func PublicTimelineRoute(res http.ResponseWriter, req *http.Request) {
-
+	AddSafeHeaders(res)
 	if err := templates["publictimeline"].Execute(res, map[string]interface{}{
-		"loggedin": !helper.IsEmpty(helper.GetUserName(req)), 
-		"postSlice": helper.GetMoreposts(10),
+		"loggedin":        !helper.IsEmpty(helper.GetUserName(req)),
+		"postSlice":       helper.GetMoreposts(10),
 		"postSliceLength": len(helper.GetMoreposts(10)),
-		"showMoreActive": true,
-    }); err != nil {
+		"showMoreActive":  true,
+	}); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func PublicTimelineLoadMore(res http.ResponseWriter, req *http.Request){
-	
+func PublicTimelineLoadMore(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
 	if err := templates["publictimeline"].Execute(res, map[string]interface{}{
-		"loggedin": !helper.IsEmpty(helper.GetUserName(req)), 
-		"postSlice": helper.GetAllPosts(),
+		"loggedin":        !helper.IsEmpty(helper.GetUserName(req)),
+		"postSlice":       helper.GetAllPosts(),
 		"postSliceLength": len(helper.GetAllPosts()),
-		"showMoreActive": false,
-    }); err != nil {
+		"showMoreActive":  false,
+	}); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
-
 
 func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
-
-	if (helper.IsEmpty(helper.GetUserName(req))){
-		 http.Redirect(res, req, "/", 302)
-		}
+	AddSafeHeaders(res)
+	if helper.IsEmpty(helper.GetUserName(req)) {
+		http.Redirect(res, req, "/", 302)
+	}
 
 	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
-		"loggedin": !helper.IsEmpty(helper.GetUserName(req)),
-		"username" : helper.GetUserName(req),
+		"loggedin":  !helper.IsEmpty(helper.GetUserName(req)),
+		"username":  helper.GetUserName(req),
 		"postSlice": helper.GetUserPosts(helper.GetUserName(req)),
-		"posts": helper.PostsAmount(helper.GetUserPosts(helper.GetUserName(req))),
-    }); err != nil {
+		"posts":     helper.PostsAmount(helper.GetUserPosts(helper.GetUserName(req))),
+	}); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func PersonalTimelineMore(res http.ResponseWriter, req *http.Request) {
-
-	if (helper.IsEmpty(helper.GetUserName(req))){
-		 http.Redirect(res, req, "/", 302)
-		}
+	AddSafeHeaders(res)
+	if helper.IsEmpty(helper.GetUserName(req)) {
+		http.Redirect(res, req, "/", 302)
+	}
 
 	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
-		"loggedin": !helper.IsEmpty(helper.GetUserName(req)),
-		"username" : helper.GetUserName(req),
+		"loggedin":  !helper.IsEmpty(helper.GetUserName(req)),
+		"username":  helper.GetUserName(req),
 		"postSlice": helper.GetUserPosts(helper.GetUserName(req)),
-		"posts": helper.PostsAmount(helper.GetUserPosts(helper.GetUserName(req))),
-    }); err != nil {
+		"posts":     helper.PostsAmount(helper.GetUserPosts(helper.GetUserName(req))),
+	}); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func UserpageRoute(res http.ResponseWriter, req *http.Request) {
+	AddSafeHeaders(res)
+	vars := mux.Vars(req)
 
-	vars := mux.Vars(req)	
-
-	if (!helper.CheckUsernameExists(vars["username"])){
+	if !helper.CheckUsernameExists(vars["username"]) {
 		http.Redirect(res, req, "/", 302)
 	}
 	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
-		"loggedin": !helper.IsEmpty(helper.GetUserName(req)),
-		"username" : vars["username"],
-		"postSlice": helper.GetUserPosts(vars["username"]),
-		"posts": helper.PostsAmount(helper.GetUserPosts(vars["username"])),
-		"visitorUsername" : helper.GetUserName(req),
-		"visit" : true,
-		"alreadyFollow" : helper.CheckIfFollowed(vars["username"],helper.GetUserName(req)),
-		"sameUser" : vars["username"] == helper.GetUserName(req),
-    }); err != nil {
+		"loggedin":        !helper.IsEmpty(helper.GetUserName(req)),
+		"username":        vars["username"],
+		"postSlice":       helper.GetUserPosts(vars["username"]),
+		"posts":           helper.PostsAmount(helper.GetUserPosts(vars["username"])),
+		"visitorUsername": helper.GetUserName(req),
+		"visit":           true,
+		"alreadyFollow":   helper.CheckIfFollowed(vars["username"], helper.GetUserName(req)),
+		"sameUser":        vars["username"] == helper.GetUserName(req),
+	}); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func IndexRoute(res http.ResponseWriter, req *http.Request) {
-
+	AddSafeHeaders(res)
 	if err := templates["publictimeline"].Execute(res, map[string]interface{}{
-        "loggedin": !helper.IsEmpty(helper.GetUserName(req)),
-    }); err != nil {
+		"loggedin": !helper.IsEmpty(helper.GetUserName(req)),
+	}); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
 
 func AboutRoute(res http.ResponseWriter, req *http.Request) {
-
+	AddSafeHeaders(res)
 	if err := templates["about"].Execute(res, map[string]interface{}{
-        "loggedin": !helper.IsEmpty(helper.GetUserName(req)),
-    }); err != nil {
+		"loggedin": !helper.IsEmpty(helper.GetUserName(req)),
+	}); err != nil {
 		http.Error(res, err.Error(), http.StatusInternalServerError)
 	}
 }
-
-
 
 func LoadTemplates() {
 	var baseTemplate = "templates/layout/_base.html"
