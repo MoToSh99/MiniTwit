@@ -30,10 +30,6 @@ func GetConnString() string {
 
 
 func GetDB() *gorm.DB {
-	return db
-}
-
-func InitDB() *gorm.DB {
 
 	var connString = GetConnString()
 
