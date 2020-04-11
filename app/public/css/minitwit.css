@@ -49,6 +49,12 @@ div.page {
   margin: 30px auto;
 }
 
+@media only screen and (max-width: 600px) {
+  div.page {
+    width: 95%;
+  }
+}
+
 div.page h1 {
   background: #6eccc4;
   margin: 0;
