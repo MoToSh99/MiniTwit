@@ -19,7 +19,7 @@ RUN go get github.com/sirupsen/logrus
 RUN go get github.com/joho/godotenv
 RUN go get github.com/lib/pq
 RUN go get github.com/unrolled/secure
-RUn go get github.com/jinzhu/gorm/dialects/postgres
+RUN go get github.com/jinzhu/gorm/dialects/postgres
 
 WORKDIR /src
 
