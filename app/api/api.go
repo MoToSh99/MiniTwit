@@ -195,13 +195,14 @@ func Messages_per_user(res http.ResponseWriter, r *http.Request) {
 
 		db := helpers.GetDB()
 
+		res.WriteHeader(http.StatusNoContent)
+
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
 
 		logger.Send(fmt.Sprintf(`API - Posted message with username:  %v`, vars["username"]))
 
 		metrics.MessagesSent.Inc()
 
-		res.WriteHeader(http.StatusNoContent)
 	}
 
 	elapsed := time.Since(start)
