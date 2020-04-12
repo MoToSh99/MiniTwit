@@ -42,7 +42,10 @@ func InitDB() *gorm.DB {
 
 	db, err = gorm.Open("postgres", connString)
 
-	db.DB().SetMaxIdleConns(0)
+	db.DB().SetMaxIdleConns(50)
+	db.DB().SetMaxOpenConns(500)
+	db.DB().SetConnMaxLifetime(time.Hour)
+
 
 
 	if err != nil {
