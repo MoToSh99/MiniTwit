@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"time"
 	"os"
 	helpers "../helpers"
 	logger "../logger"
+	metrics "../metrics"
 	structs "../structs"
 	handlers "../handlers"
 	"github.com/Jeffail/gabs"
@@ -61,11 +63,14 @@ func Update_latest(res http.ResponseWriter, req *http.Request) {
 // @Router /latest [get]
 func Get_latest(res http.ResponseWriter, r *http.Request) {
 	handlers.AddSafeHeaders(res)
+	start := time.Now()
+
 	res.Header().Set("Content-Type", "application/json")
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(fmt.Sprintf(`{"latest": %v}`, gLATEST)))
 	logger.Send(fmt.Sprintf(`API - Sent latest value:  %v`, gLATEST))
-	
+	elapsed := time.Since(start)
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 // Register godoc
@@ -79,6 +84,7 @@ func Get_latest(res http.ResponseWriter, r *http.Request) {
 // @Router /register [post]
 func Register(res http.ResponseWriter, r *http.Request) {
 	handlers.AddSafeHeaders(res)
+	start := time.Now()
 
 	Update_latest(res, r)
 
@@ -106,6 +112,7 @@ func Register(res http.ResponseWriter, r *http.Request) {
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email) + "?&d=identicon"
 
+		metrics.UsersRegistered.Inc()
 
 		db.Create(&structs.User{Username: user.Username, Email: user.Email, Pw_hash: helpers.HashPassword(user.Pwd), Image_url: gravatar_url})
 
@@ -119,7 +126,8 @@ func Register(res http.ResponseWriter, r *http.Request) {
 	} else {
 		res.WriteHeader(http.StatusNoContent)
 	}
-	
+	elapsed := time.Since(start)
+	metrics.ResponseTimeRegister.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 type Post struct {
@@ -130,6 +138,7 @@ type Post struct {
 
 func Messages(res http.ResponseWriter, r *http.Request) {
 	handlers.AddSafeHeaders(res)
+	start := time.Now()
 	Update_latest(res, r)
 	Not_req_from_simulator(res, r)
 
@@ -145,10 +154,13 @@ func Messages(res http.ResponseWriter, r *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(res).Encode(postSlice)
 
+	elapsed := time.Since(start)
+	metrics.ResponseTimeMsgs.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 func Messages_per_user(res http.ResponseWriter, r *http.Request) {
 	handlers.AddSafeHeaders(res)
+	start := time.Now()
 	Update_latest(res, r)
 	Not_req_from_simulator(res, r)
 	vars := mux.Vars(r)
@@ -189,9 +201,12 @@ func Messages_per_user(res http.ResponseWriter, r *http.Request) {
 
 		logger.Send(fmt.Sprintf(`API - Posted message with username:  %v`, vars["username"]))
 
+		metrics.MessagesSent.Inc()
 
 	}
 
+	elapsed := time.Since(start)
+	metrics.ResponseTimeMsgsPerUser.Observe(float64(elapsed.Seconds() * 1000))
 }
 
 type FollowUser struct {
@@ -201,6 +216,7 @@ type FollowUser struct {
 
 func Follow(res http.ResponseWriter, r *http.Request) {
 	handlers.AddSafeHeaders(res)
+	start := time.Now()
 	Update_latest(res, r)
 	Not_req_from_simulator(res, r)
 	vars := mux.Vars(r)
@@ -229,6 +245,7 @@ func Follow(res http.ResponseWriter, r *http.Request) {
 		}
 
 		db := helpers.GetDB()
+		metrics.UsersFollowed.Inc()
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
 		logger.Send(fmt.Sprintf(`API - %v follows %v`, vars["username"], follows_username))
@@ -247,6 +264,7 @@ func Follow(res http.ResponseWriter, r *http.Request) {
 
 		follow := structs.Follower{}
 
+		metrics.UsersUnfollowed.Inc()
 
 		db.Where("who_id = ? AND whom_id = ?", helpers.GetUserID(vars["username"]), helpers.GetUserID(unfollows_username)).Delete(follow)
 
@@ -272,4 +290,6 @@ func Follow(res http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(res, jsonObj.StringIndent("", "  "))
 
 	}
+	elapsed := time.Since(start)
+	metrics.ResponseTimeFollow.Observe(float64(elapsed.Seconds() * 1000))
 }
