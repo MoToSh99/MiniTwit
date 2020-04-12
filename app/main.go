@@ -89,11 +89,11 @@ func main() {
 
 	apiRoute := mux.NewRouter()
 	//apiRoute.HandleFunc("/test", api.Test)
-	apiRoute.HandleFunc("/latest", metricsMonitor(api.Get_latest))
-	apiRoute.HandleFunc("/register", metricsMonitor(api.Register)).Methods("POST")
-	apiRoute.HandleFunc("/msgs", metricsMonitor(api.Messages))
-	apiRoute.HandleFunc("/msgs/{username}", metricsMonitor(api.Messages_per_user))
-	apiRoute.HandleFunc("/fllws/{username}", metricsMonitor(api.Follow))
+	apiRoute.HandleFunc("/latest", api.Get_latest)
+	apiRoute.HandleFunc("/register", api.Register).Methods("POST")
+	apiRoute.HandleFunc("/msgs", api.Messages)
+	apiRoute.HandleFunc("/msgs/{username}",api.Messages_per_user)
+	apiRoute.HandleFunc("/fllws/{username}", api.Follow)
 
 	//localhost:5001/docs/ Remember last backslash
 	//Prøver at tage udgangspunkt i https://github.com/swaggo/http-swagger
