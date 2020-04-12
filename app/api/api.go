@@ -15,9 +15,6 @@ import (
 	handlers "../handlers"
 	"github.com/Jeffail/gabs"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mssql"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -27,24 +24,6 @@ func GetConnString() string {
 
 	return connString
 }
-
-
-func GetDB() *gorm.DB {
-
-	var connString = GetConnString()
-
-	db, err := gorm.Open("postgres", connString)
-
-
-	if err != nil {
-		panic("failed to connect database")
-	}
-
-	return db
-
-}
-
-var db *gorm.DB
 
 var gLATEST = 0
 
@@ -129,7 +108,7 @@ func Register(res http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 
-		db := GetDB()
+		db := helpers.GetDB()
 
 		gravatar_url := "http://www.gravatar.com/avatar/" + helpers.GetGravatarHash(user.Email) + "?&d=identicon"
 
@@ -164,7 +143,7 @@ func Messages(res http.ResponseWriter, r *http.Request) {
 	Not_req_from_simulator(res, r)
 
 	no, _ := strconv.Atoi(r.URL.Query().Get("no"))
-	db := GetDB()
+	db := helpers.GetDB()
 
 	var postSlice []Post
 
@@ -192,7 +171,7 @@ func Messages_per_user(res http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		db := GetDB()
+		db := helpers.GetDB()
 		no, _ := strconv.Atoi(r.URL.Query().Get("no"))
 
 		var postSlice []Post
@@ -214,7 +193,9 @@ func Messages_per_user(res http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := GetDB()
+		db := helpers.GetDB()
+
+		res.WriteHeader(http.StatusNoContent)
 
 		db.Create(&structs.Message{Author_id: helpers.GetUserID(vars["username"]), Text: msg.Text, Pub_date: helpers.GetCurrentTime(), Flagged: 0})
 
@@ -222,7 +203,6 @@ func Messages_per_user(res http.ResponseWriter, r *http.Request) {
 
 		metrics.MessagesSent.Inc()
 
-		res.WriteHeader(http.StatusNoContent)
 	}
 
 	elapsed := time.Since(start)
@@ -264,7 +244,7 @@ func Follow(res http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		db := GetDB()
+		db := helpers.GetDB()
 		metrics.UsersFollowed.Inc()
 		db.Create(&structs.Follower{Who_id: helpers.GetUserID(vars["username"]), Whom_id: helpers.GetUserID(follows_username)})
 
@@ -280,7 +260,7 @@ func Follow(res http.ResponseWriter, r *http.Request) {
 			res.WriteHeader(http.StatusNotFound)
 			return
 		}
-		db := GetDB()
+		db := helpers.GetDB()
 
 		follow := structs.Follower{}
 
@@ -291,7 +271,7 @@ func Follow(res http.ResponseWriter, r *http.Request) {
 		logger.Send(fmt.Sprintf(`API - %v unfollows %v `, vars["username"], unfollows_username))
 
 	} else if r.Method == http.MethodGet {
-		db := GetDB()
+		db := helpers.GetDB()
 
 		userSlice := []structs.Follower{}
 
