@@ -1,5 +1,7 @@
+## Minitwit build with Go  
+
 ![Docker Image CI](https://github.com/MoToSh99/MiniTwit/workflows/Docker%20Image%20CI/badge.svg) minitwitgo
-Minitwit build with Go
+
 
 Monitoring with Grafana: http://134.122.83.72:3000/  
 Logs with Kibana: http://165.22.76.211:5601/  
