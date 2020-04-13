@@ -1,6 +1,6 @@
 ## Minitwit build with Go  
 
-![Docker Image CI](https://github.com/MoToSh99/MiniTwit/workflows/Docker%20Image%20CI/badge.svg) minitwitgo
+![Docker Image CI](https://github.com/MoToSh99/MiniTwit/workflows/Docker%20Image%20CI/badge.svg)
 
 
 Monitoring with Grafana: http://134.122.83.72:3000/  
