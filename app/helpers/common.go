@@ -42,9 +42,9 @@ func InitDB() *gorm.DB {
 
 	db, err = gorm.Open("postgres", connString)
 
-	db.DB().SetMaxIdleConns(50)
-	db.DB().SetMaxOpenConns(75)
-	db.DB().SetConnMaxLifetime(time.Hour)
+	//db.DB().SetMaxIdleConns(50)
+	//db.DB().SetMaxOpenConns(75)
+	//db.DB().SetConnMaxLifetime(time.Hour)
 
 	if err != nil {
 		panic("failed to connect database")
