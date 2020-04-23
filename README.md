@@ -1,6 +1,6 @@
 ## Minitwit build with Go  
 
-![Docker Image CI](https://github.com/MoToSh99/MiniTwit/workflows/Docker%20Image%20CI/badge.svg)
+![Docker Image CI](https://github.com/MoToSh99/MiniTwit/workflows/Docker%20Image%20CI/badge.svg) [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=MoToSh99_MiniTwit&metric=alert_status)](https://sonarcloud.io/dashboard?id=MoToSh99_MiniTwit)
 
 
 Monitoring with Grafana: http://134.122.83.72:3000/  
