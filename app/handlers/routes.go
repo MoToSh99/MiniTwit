@@ -61,21 +61,6 @@ func PersonalTimelineRoute(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
-func PersonalTimelineMore(res http.ResponseWriter, req *http.Request) {
-	AddSafeHeaders(res)
-	if helper.IsEmpty(helper.GetUserName(req)) {
-		http.Redirect(res, req, "/", 302)
-	}
-
-	if err := templates["personaltimeline"].Execute(res, map[string]interface{}{
-		"loggedin":  !helper.IsEmpty(helper.GetUserName(req)),
-		"username":  helper.GetUserName(req),
-		"postSlice": helper.GetUserPosts(helper.GetUserName(req)),
-		"posts":     helper.PostsAmount(helper.GetUserPosts(helper.GetUserName(req))),
-	}); err != nil {
-		http.Error(res, err.Error(), http.StatusInternalServerError)
-	}
-}
 
 func UserpageRoute(res http.ResponseWriter, req *http.Request) {
 	AddSafeHeaders(res)

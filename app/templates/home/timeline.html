@@ -36,7 +36,7 @@
   <ul class=messages>
   {{ if .posts}} 
     {{ range .postSlice }}
-    <li><img src=""><p>
+    <li><img alt="profilepicture" src=""><p>
       <strong><a href="/{{.visitorUsername }}"">{{ .visitorUsername }}</a></strong>
       {{ .Text }}
       <small>&mdash; {{ .Pub_date }}</small>
