@@ -151,7 +151,7 @@ See [KUBERNETES.md](https://github.com/joemccann/dillinger/blob/master/KUBERNETE
 License
 ----
 
-MIT
+MIT     
 
 
 **Free Software, Hell Yeah!**
